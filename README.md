@@ -2,7 +2,7 @@
 
 A local dark-mode webpage for online training sessions in Teams, Zoom, or similar screen-sharing tools.
 Provides timers, messages to help manage an online course session.
-Includes AirSketch Pro support to provide a quick whiteboard with iPad support without needing new browser tabs.
+Includes optional AirSketch Pro support to provide a quick whiteboard with iPad support without needing new browser tabs.
 
 Live URL after the repository is renamed:
 
