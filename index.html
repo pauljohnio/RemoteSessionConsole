@@ -525,31 +525,6 @@
         text-transform: uppercase;
       }
 
-      .quick-start {
-        grid-column: 1 / -1;
-        border: 1px solid var(--line-soft);
-        border-radius: var(--radius);
-        background: rgb(18 23 32 / 62%);
-        color: var(--muted);
-      }
-
-      .quick-start summary {
-        cursor: pointer;
-        padding: 9px 12px;
-        font-size: 0.8rem;
-        font-weight: 760;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .quick-start p {
-        margin: 0;
-        padding: 0 12px 10px;
-        color: var(--dim);
-        font-size: 0.9rem;
-        line-height: 1.45;
-      }
-
       .preview-panel .panel-body {
         padding: 0;
       }
@@ -580,7 +555,8 @@
       }
 
       .clean .topbar,
-      .clean .left-rail {
+      .clean .left-rail,
+      .clean .instructions-panel {
         display: none;
       }
 
@@ -636,6 +612,35 @@
         display: block;
       }
 
+      .instructions-panel {
+        position: fixed;
+        top: 58px;
+        right: 16px;
+        z-index: 20;
+        width: min(380px, calc(100vw - 32px));
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: rgb(16 21 29 / 96%);
+        box-shadow: var(--shadow);
+      }
+
+      .instructions-panel[hidden] {
+        display: none;
+      }
+
+      .instructions-panel .panel-body {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.45;
+      }
+
+      .instructions-panel ul {
+        display: grid;
+        gap: 7px;
+        margin: 0;
+        padding: 0 0 0 18px;
+      }
+
       @media (max-width: 980px) {
         .stage {
           grid-template-columns: 1fr;
@@ -678,6 +683,9 @@
           <span id="presenterEmail"></span>
         </div>
         <div class="actions">
+          <button id="instructionsToggle" class="ghost" title="Show configuration help">
+            Instructions
+          </button>
           <button id="blankScreen" class="ghost" title="Toggle blank screen with B">
             Blank
           </button>
@@ -690,16 +698,27 @@
         </div>
       </header>
 
+      <section
+        id="instructionsPanel"
+        class="panel instructions-panel"
+        aria-label="Configuration instructions"
+        hidden
+      >
+        <div class="panel-header">
+          <h2>Instructions</h2>
+        </div>
+        <div class="panel-body">
+          <ul>
+            <li>Set presenter details for the shared display footer.</li>
+            <li>Choose a session status preset or type your own message.</li>
+            <li>Use countdown controls for breaks or session start times.</li>
+            <li>Use Display View when sharing, and Blank for a clean pause.</li>
+          </ul>
+        </div>
+      </section>
+
       <main class="stage">
         <div class="app-meta left-rail">Remote Session Console · v1.0.0</div>
-        <details class="quick-start left-rail">
-          <summary>Config Instructions</summary>
-          <p>
-            Configure the presenter details, choose a session status preset or type your own message,
-            then use Display View for sharing. Use the countdown controls for breaks or start times, and
-            Blank if you need a clean pause.
-          </p>
-        </details>
 
         <aside class="column left-rail">
           <section class="panel">
@@ -888,6 +907,8 @@
         blankScreen: document.getElementById("blankScreen"),
         cleanMode: document.getElementById("cleanMode"),
         cleanReturn: document.getElementById("cleanReturn"),
+        instructionsToggle: document.getElementById("instructionsToggle"),
+        instructionsPanel: document.getElementById("instructionsPanel"),
         fullscreen: document.getElementById("fullscreen"),
       };
 
@@ -1215,9 +1236,25 @@
         toggleCleanMode(false);
       });
 
+      els.instructionsToggle.addEventListener("click", (event) => {
+        event.stopPropagation();
+        els.instructionsPanel.hidden = !els.instructionsPanel.hidden;
+      });
+
+      els.instructionsPanel.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+
+      document.addEventListener("click", () => {
+        els.instructionsPanel.hidden = true;
+      });
+
       function toggleCleanMode(force) {
         const next = typeof force === "boolean" ? force : !els.body.classList.contains("clean");
         els.body.classList.toggle("clean", next);
+        if (next) {
+          els.instructionsPanel.hidden = true;
+        }
         els.cleanMode.textContent = els.body.classList.contains("clean")
           ? "Show controls"
           : "Display View";
@@ -1243,6 +1280,7 @@
         const key = event.key.toLowerCase();
         if (event.key === "Escape") {
           event.preventDefault();
+          els.instructionsPanel.hidden = true;
           showDashboard();
           toggleCleanMode(false);
           return;
