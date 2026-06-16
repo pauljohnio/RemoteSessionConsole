@@ -19,7 +19,7 @@ Make the browser window the same size as the desktop area you share. Use **Fulls
 - Shows the app name and version on the config screen.
 - Includes an **Instructions** button for quick setup guidance.
 - Lets you configure the presenter name, email, and optional link shown on the display.
-- Shows a large session message such as "Starting soon", "Break", "Exercise / Lab", "One moment", or "Brief pause".
+- Shows a large session message such as "Starting soon", "Break", "Exercise / Lab", or "One moment".
 - Keeps a **Custom** status preset based on the last status/message you typed.
 - Starts break timers from quick presets or a specific return time in 12-hour or 24-hour format.
 - Uses **Display View** to hide controls while sharing.

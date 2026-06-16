@@ -529,6 +529,33 @@
         padding: 0;
       }
 
+      .shortcut-reminder {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 8px 12px;
+        min-height: 36px;
+        padding: 8px 10px;
+        border: 1px solid var(--line-soft);
+        border-radius: var(--radius);
+        background: rgb(18 23 32 / 62%);
+        color: var(--dim);
+        font-size: 0.78rem;
+        font-weight: 720;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .shortcut-reminder span {
+        white-space: nowrap;
+      }
+
+      .shortcut-reminder strong {
+        color: var(--muted);
+        font-weight: 820;
+      }
+
       .preview-panel .hero {
         min-height: clamp(300px, 42vh, 410px);
         gap: 18px;
@@ -733,7 +760,7 @@
                 </button>
                 <button data-preset="Break" data-message="Session currently on break.">
                   <span>Break</span>
-                  <small>Return timer ready</small>
+                  <small>Return timer</small>
                 </button>
                 <button data-preset="Exercise / Lab" data-message="We are currently working on an exercise or lab activity.">
                   <span>Exercise / Lab</span>
@@ -742,10 +769,6 @@
                 <button data-preset="One moment" data-message="One moment please.">
                   <span>One Moment</span>
                   <small>Short holding page</small>
-                </button>
-                <button data-preset="Brief pause" data-message="We are taking a brief pause. The session will resume shortly.">
-                  <span>Brief Pause</span>
-                  <small>Professional pause</small>
                 </button>
                 <button id="customPreset">
                   <span>Custom</span>
@@ -770,6 +793,13 @@
         </aside>
 
         <section class="column">
+          <div class="shortcut-reminder left-rail" aria-label="Keyboard shortcuts">
+            <span><strong>D</strong> Display</span>
+            <span><strong>B</strong> Blank</span>
+            <span><strong>H</strong> One Moment</span>
+            <span><strong>C</strong> Config</span>
+            <span><strong>Esc</strong> Config</span>
+          </div>
           <section class="panel preview-panel">
             <div class="panel-header">
               <h2>Display Mode Preview</h2>
