@@ -63,8 +63,8 @@
         background: #151b24;
         color: var(--text);
         cursor: pointer;
-        min-height: 42px;
-        padding: 0 16px;
+        min-height: 36px;
+        padding: 0 14px;
         font-weight: 650;
         transition:
           border-color 140ms ease,
@@ -111,7 +111,7 @@
 
       label {
         display: grid;
-        gap: 7px;
+        gap: 6px;
         color: var(--muted);
         font-size: 0.78rem;
         letter-spacing: 0.08em;
@@ -129,13 +129,13 @@
       }
 
       input {
-        min-height: 42px;
+        min-height: 34px;
         padding: 0 12px;
       }
 
       textarea {
-        min-height: 160px;
-        padding: 14px;
+        min-height: 96px;
+        padding: 12px;
         resize: vertical;
         line-height: 1.5;
       }
@@ -157,7 +157,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 18px;
-        padding: 12px 18px;
+        padding: 8px 16px;
         border-bottom: 1px solid var(--line-soft);
         background: rgb(11 15 23 / 96%);
         backdrop-filter: blur(14px);
@@ -205,9 +205,12 @@
 
       .stage {
         display: grid;
-        grid-template-columns: minmax(330px, 0.95fr) minmax(420px, 1.35fr);
-        gap: 16px;
-        padding: 16px;
+        grid-template-columns:
+          minmax(300px, 0.9fr)
+          minmax(420px, 1.25fr)
+          minmax(280px, 0.85fr);
+        gap: 12px;
+        padding: 12px;
       }
 
       .blank-screen .stage,
@@ -231,7 +234,7 @@
 
       .column {
         display: grid;
-        gap: 16px;
+        gap: 12px;
         align-content: start;
       }
 
@@ -248,7 +251,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 12px 14px;
+        padding: 8px 12px;
         border-bottom: 1px solid var(--line-soft);
         background: #141a24;
       }
@@ -262,7 +265,7 @@
       }
 
       .panel-body {
-        padding: 16px;
+        padding: 10px;
       }
 
       .hero {
@@ -441,31 +444,31 @@
 
       .quick-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-        gap: 8px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
       }
 
       .quick-grid button {
-        min-height: 64px;
-        padding: 10px 12px;
+        min-height: 54px;
+        padding: 8px 10px;
         text-align: left;
       }
 
       .field-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        gap: 8px;
       }
 
       .stack {
         display: grid;
-        gap: 12px;
+        gap: 10px;
       }
 
       .timer-controls {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        gap: 8px;
       }
 
       .timer-controls button.is-active {
@@ -478,11 +481,11 @@
       .quick-time-grid {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 8px;
+        gap: 7px;
       }
 
       .quick-time-grid button {
-        min-height: 54px;
+        min-height: 46px;
         padding: 8px;
         text-align: center;
       }
@@ -532,7 +535,7 @@
 
       .quick-start summary {
         cursor: pointer;
-        padding: 10px 14px;
+        padding: 9px 12px;
         font-size: 0.8rem;
         font-weight: 760;
         letter-spacing: 0.08em;
@@ -541,59 +544,39 @@
 
       .quick-start p {
         margin: 0;
-        padding: 0 14px 12px;
+        padding: 0 12px 10px;
         color: var(--dim);
         font-size: 0.9rem;
         line-height: 1.45;
       }
 
-      .agenda-list {
-        display: grid;
-        gap: 9px;
-        margin: 0;
+      .preview-panel .panel-body {
         padding: 0;
-        list-style: none;
       }
 
-      .agenda-item {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: 10px;
-        min-height: 44px;
-        padding: 8px 10px;
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
-        background: #0b1018;
+      .preview-panel .hero {
+        min-height: clamp(300px, 42vh, 410px);
+        gap: 18px;
+        padding: clamp(22px, 3.5vw, 36px);
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
       }
 
-      .agenda-item input[type="checkbox"] {
-        width: 18px;
-        min-height: 18px;
-        accent-color: var(--accent-2);
+      .preview-panel .session-state {
+        font-size: clamp(0.9rem, 1.3vw, 1.15rem);
       }
 
-      .agenda-item .text {
-        color: var(--text);
-        overflow-wrap: anywhere;
+      .preview-panel .message {
+        font-size: clamp(1.35rem, 2.4vw, 2.4rem);
       }
 
-      .agenda-item.done .text {
-        color: var(--dim);
-        text-decoration: line-through;
+      .preview-panel .countdown {
+        font-size: clamp(2.4rem, 5vw, 4.8rem);
       }
 
-      .small-button {
-        min-height: 34px;
-        padding: 0 10px;
-        color: var(--muted);
-      }
-
-      .panel-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: flex-end;
+      .preview-panel .display-presenter {
+        bottom: clamp(24px, 4vw, 42px);
       }
 
       .clean .topbar,
@@ -611,8 +594,26 @@
         padding: 0;
       }
 
+      .clean .preview-panel {
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .clean .preview-panel .panel-header {
+        display: none;
+      }
+
+      .clean .preview-panel .panel-body {
+        padding: 0;
+      }
+
       .clean .hero {
         min-height: 100vh;
+        gap: 26px;
+        padding: clamp(28px, 5vw, 54px);
         border: 0;
         border-radius: 0;
       }
@@ -747,6 +748,40 @@
             </div>
           </section>
 
+        </aside>
+
+        <section class="column">
+          <section class="panel preview-panel">
+            <div class="panel-header">
+              <h2>Display Mode Preview</h2>
+            </div>
+            <div class="panel-body">
+              <div class="hero" aria-live="polite">
+                <div class="session-heading">
+                  <div id="sessionState" class="session-state">Starting soon</div>
+                  <div id="courseTitle" class="course-title"></div>
+                  <div class="current-time">
+                    <div id="clock" class="clock">--:--</div>
+                    <div id="dateLine" class="date-line">Loading time</div>
+                  </div>
+                </div>
+                <div id="message" class="message">Thank you for joining the session, we will start soon.</div>
+                <div class="countdown-block">
+                  <div id="countdownLabel" class="countdown-label"></div>
+                  <div id="countdown" class="countdown">--:--</div>
+                  <div id="countdownTarget" class="countdown-target"></div>
+                </div>
+                <div class="display-presenter">
+                  <span id="displayPresenterName">Presenter Name</span>
+                  <span id="displayPresenterEmail"></span>
+                  <span id="displayPresenterLink"></span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <aside class="column left-rail">
           <section class="panel">
             <div class="panel-header">
               <h2>Countdown</h2>
@@ -784,31 +819,6 @@
             </div>
           </section>
 
-        </aside>
-
-        <section class="column">
-          <div class="hero" aria-live="polite">
-            <div class="session-heading">
-              <div id="sessionState" class="session-state">Starting soon</div>
-              <div id="courseTitle" class="course-title"></div>
-              <div class="current-time">
-                <div id="clock" class="clock">--:--</div>
-                <div id="dateLine" class="date-line">Loading time</div>
-              </div>
-            </div>
-            <div id="message" class="message">Thank you for joining the session, we will start soon.</div>
-            <div class="countdown-block">
-              <div id="countdownLabel" class="countdown-label"></div>
-              <div id="countdown" class="countdown">--:--</div>
-              <div id="countdownTarget" class="countdown-target"></div>
-            </div>
-            <div class="display-presenter">
-              <span id="displayPresenterName">Presenter Name</span>
-              <span id="displayPresenterEmail"></span>
-              <span id="displayPresenterLink"></span>
-            </div>
-          </div>
-
           <section class="panel left-rail">
             <div class="panel-header">
               <h2>Config Presenter</h2>
@@ -828,7 +838,7 @@
               </label>
             </div>
           </section>
-        </section>
+        </aside>
       </main>
 
     </div>
