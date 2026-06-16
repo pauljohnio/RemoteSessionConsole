@@ -1,7 +1,8 @@
-# Training Console
+# Course Info Training Console
 
-A local dark-mode webpage for online training sessions in Teams, Zoom, or similar screen-sharing tools.
-
+A  dark-mode webpage for online training sessions in Teams, Zoom, or similar screen-sharing tools.
+Provides timers, messages to help manage an online course session
+Added Airsketch Pro support to provide a quick whiteboard with iPAD solution without need for new browser tabs.
 ## Use It
 
 Open `index.html` directly in your browser. You can keep it on your Desktop, copy it to another machine, or run it from a USB drive.
