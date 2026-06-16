@@ -187,7 +187,6 @@
         min-width: 108px;
       }
 
-      .view-whiteboard #whiteboardMode,
       .blank-screen #blankScreen,
       .clean #cleanMode {
         border-color: rgb(74 163 255 / 52%);
@@ -201,207 +200,8 @@
         padding: 16px;
       }
 
-      .whiteboard-view {
-        --whiteboard-top-mask: 8px;
-        --whiteboard-bottom-mask: 120px;
-        --whiteboard-side-mask: 7%;
-        --whiteboard-fit-scale: 1.16;
-        --whiteboard-mask-color: #c8d0d8;
-        display: none;
-        min-height: 0;
-        height: 100%;
-        grid-template-rows: max-content minmax(0, 1fr);
-        gap: 8px;
-        padding: 8px;
-      }
-
-      .whiteboard-bar {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 8px;
-      }
-
-      .whiteboard-bar label {
-        flex: 0 1 520px;
-        min-width: 240px;
-        display: block;
-      }
-
-      .whiteboard-bar input {
-        min-height: 36px;
-      }
-
-      .whiteboard-url-label span {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        white-space: nowrap;
-      }
-
-      .whiteboard-bar button {
-        min-height: 36px;
-        white-space: nowrap;
-      }
-
-      .whiteboard-frame-wrap {
-        position: relative;
-        min-height: 0;
-        height: 100%;
-        border: 1px solid var(--line-soft);
-        border-radius: var(--radius);
-        background: var(--whiteboard-mask-color);
-        box-shadow: var(--shadow);
-        overflow: hidden;
-      }
-
-      .whiteboard-course-title {
-        display: none;
-        position: absolute;
-        right: 18px;
-        bottom: 18px;
-        left: 18px;
-        z-index: 7;
-        min-height: 1.4em;
-        color: rgb(9 13 19 / 68%);
-        font-size: clamp(0.95rem, 1.3vw, 1.2rem);
-        font-weight: 760;
-        line-height: 1.25;
-        text-align: center;
-        pointer-events: none;
-      }
-
-      .whiteboard-loaded .whiteboard-course-title:not(:empty) {
-        display: block;
-      }
-
-      .whiteboard-mask {
-        display: none;
-        position: absolute;
-        pointer-events: none;
-        z-index: 5;
-      }
-
-      .whiteboard-loaded .whiteboard-mask {
-        display: block;
-      }
-
-      .whiteboard-side-mask {
-        inset: 0;
-        background:
-          linear-gradient(
-            180deg,
-            var(--whiteboard-mask-color) 0,
-            var(--whiteboard-mask-color) var(--whiteboard-top-mask),
-            transparent var(--whiteboard-top-mask)
-          ),
-          linear-gradient(
-            90deg,
-            var(--whiteboard-mask-color) 0,
-            var(--whiteboard-mask-color) var(--whiteboard-side-mask),
-            transparent var(--whiteboard-side-mask),
-            transparent calc(100% - var(--whiteboard-side-mask)),
-            var(--whiteboard-mask-color) calc(100% - var(--whiteboard-side-mask)),
-            var(--whiteboard-mask-color) 100%
-          );
-      }
-
-      .whiteboard-bottom-mask {
-        right: 0;
-        bottom: 0;
-        left: 0;
-        height: var(--whiteboard-bottom-mask);
-        background: var(--whiteboard-mask-color);
-      }
-
-      .whiteboard-frame {
-        display: block;
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        height: 100%;
-        min-height: 0;
-        border: 0;
-        background: #fff;
-      }
-
-      .whiteboard-loaded .whiteboard-view {
-        grid-template-rows: minmax(0, 1fr);
-        gap: 0;
-        padding: 8px 12px 12px;
-      }
-
-      .whiteboard-loaded .whiteboard-config {
-        display: none;
-      }
-
-      .whiteboard-loaded .whiteboard-frame {
-        height: 100%;
-        transform: scale(var(--whiteboard-fit-scale));
-        transform-origin: center center;
-      }
-
-      .whiteboard-empty {
-        display: grid;
-        place-items: center;
-        min-height: 0;
-        height: 100%;
-        padding: 24px;
-        color: var(--muted);
-        text-align: center;
-      }
-
-      .whiteboard-empty strong {
-        display: block;
-        margin-bottom: 8px;
-        color: var(--text);
-        font-size: 1.35rem;
-      }
-
-      .whiteboard-status {
-        color: var(--muted);
-      }
-
-      .whiteboard-hint {
-        flex: 1 1 auto;
-        color: var(--muted);
-        font-size: 0.86rem;
-        min-width: 180px;
-      }
-
-      .whiteboard-settings {
-        position: fixed;
-        right: 16px;
-        bottom: 16px;
-        z-index: 10;
-        display: none;
-        min-height: 36px;
-        color: var(--muted);
-        background: rgb(14 18 24 / 86%);
-        opacity: 0.42;
-        backdrop-filter: blur(12px);
-      }
-
-      .whiteboard-settings:hover,
-      .whiteboard-settings:focus {
-        opacity: 1;
-      }
-
-      .view-whiteboard.whiteboard-loaded .whiteboard-settings {
-        display: block;
-      }
-
-      .view-whiteboard .stage {
-        display: none;
-      }
-
       .blank-screen .stage,
-      .blank-screen .topbar,
-      .blank-screen .whiteboard-view,
-      .blank-screen .clean-panic,
-      .blank-screen .whiteboard-settings {
+      .blank-screen .topbar {
         display: none !important;
       }
 
@@ -417,49 +217,6 @@
 
       .blank-screen .clean-return {
         display: block;
-      }
-
-      .view-whiteboard .shell {
-        display: block;
-        height: 100vh;
-        min-height: 100vh;
-        overflow: hidden;
-      }
-
-      .view-whiteboard .topbar {
-        display: none;
-      }
-
-      .view-whiteboard .whiteboard-view {
-        display: grid;
-        height: 100vh;
-        min-height: 100vh;
-        padding: 0;
-      }
-
-      .view-whiteboard.whiteboard-loaded .whiteboard-view {
-        padding: 8px 12px 12px;
-      }
-
-      .view-whiteboard .whiteboard-settings {
-        right: auto;
-        left: 16px;
-      }
-
-      .view-whiteboard .whiteboard-frame-wrap,
-      .view-whiteboard .whiteboard-frame,
-      .view-whiteboard .whiteboard-empty {
-        height: 100vh;
-        min-height: 100vh;
-        border: 0;
-        border-radius: 0;
-      }
-
-      .view-whiteboard.whiteboard-loaded .whiteboard-frame-wrap,
-      .view-whiteboard.whiteboard-loaded .whiteboard-frame,
-      .view-whiteboard.whiteboard-loaded .whiteboard-empty {
-        height: 100%;
-        min-height: 0;
       }
 
       .column {
@@ -496,10 +253,6 @@
 
       .panel-body {
         padding: 16px;
-      }
-
-      .panel-body.whiteboard-bar {
-        padding: 6px 8px;
       }
 
       .hero {
@@ -711,15 +464,6 @@
         gap: 8px;
       }
 
-      .shortcut-reminder {
-        grid-column: 1 / -1;
-        color: var(--dim);
-        font-size: 0.78rem;
-        font-weight: 680;
-        letter-spacing: 0.04em;
-        text-align: center;
-      }
-
       .app-meta {
         grid-column: 1 / -1;
         color: var(--muted);
@@ -819,29 +563,6 @@
         padding: 0;
       }
 
-      .clean.view-whiteboard .stage {
-        display: none;
-      }
-
-      .clean.view-whiteboard .whiteboard-view {
-        height: 100vh;
-        min-height: 100vh;
-        padding: 0;
-      }
-
-      .clean.view-whiteboard .whiteboard-config {
-        display: none;
-      }
-
-      .clean.view-whiteboard .whiteboard-frame-wrap,
-      .clean.view-whiteboard .whiteboard-frame,
-      .clean.view-whiteboard .whiteboard-empty {
-        height: 100vh;
-        min-height: 100vh;
-        border: 0;
-        border-radius: 0;
-      }
-
       .clean .hero {
         min-height: 100vh;
         border: 0;
@@ -862,33 +583,7 @@
         opacity: 1;
       }
 
-      .clean .clean-return,
-      .view-whiteboard .clean-return {
-        display: block;
-      }
-
-      .clean .whiteboard-settings {
-        display: none !important;
-      }
-
-      .clean-panic {
-        position: fixed;
-        right: 120px;
-        bottom: 16px;
-        z-index: 10;
-        display: none;
-        border-color: rgb(255 204 102 / 44%);
-        background: rgb(33 25 10 / 88%);
-        color: var(--warn);
-        opacity: 0.72;
-      }
-
-      .clean-panic:hover,
-      .clean-panic:focus {
-        opacity: 1;
-      }
-
-      .view-whiteboard .clean-panic {
+      .clean .clean-return {
         display: block;
       }
 
@@ -911,8 +606,7 @@
         .actions,
         .quick-grid,
         .field-grid,
-        .timer-controls,
-        .whiteboard-bar {
+        .timer-controls {
           grid-template-columns: 1fr;
           width: 100%;
         }
@@ -935,9 +629,6 @@
           <span id="presenterEmail"></span>
         </div>
         <div class="actions">
-          <button id="whiteboardMode" class="ghost" title="Show whiteboard">
-            Whiteboard
-          </button>
           <button id="blankScreen" class="ghost" title="Toggle blank screen with B">
             Blank
           </button>
@@ -953,16 +644,13 @@
       <main class="stage">
         <div class="app-meta left-rail">Remote Session Console · v1.0.0</div>
         <details class="quick-start left-rail">
-          <summary>Quick Start</summary>
+          <summary>Config Instructions</summary>
           <p>
             Configure the presenter details, choose a quick status or type your own message, then use
-            Display View for sharing. Use Esc/C to return to config, B to blank, H for One moment, and W
-            for Whiteboard.
+            Display View for sharing. Use the countdown controls for breaks or start times, and Blank if
+            you need a clean pause.
           </p>
         </details>
-        <div class="shortcut-reminder left-rail">
-          Esc/C Config · D Display · B Blank · H One moment · W Whiteboard
-        </div>
 
         <aside class="column left-rail">
           <section class="panel">
@@ -1013,7 +701,7 @@
                 <button id="startTimer">Break return</button>
               </div>
               <button id="clearTimer">Clear timer</button>
-              <div class="quick-time-grid" aria-label="Break length shortcuts">
+              <div class="quick-time-grid" aria-label="Break length presets">
                 <button data-minutes="5">5</button>
                 <button data-minutes="10">10</button>
                 <button data-minutes="15">15</button>
@@ -1070,53 +758,12 @@
         </section>
       </main>
 
-      <section id="whiteboardView" class="whiteboard-view" aria-label="Whiteboard portal">
-        <div class="panel whiteboard-config">
-          <div class="panel-body whiteboard-bar">
-            <label class="whiteboard-url-label">
-              <span>Whiteboard URL or IP address</span>
-              <input
-                id="whiteboardUrl"
-                aria-label="Whiteboard URL or IP address"
-                placeholder="Whiteboard URL or IP address"
-              />
-            </label>
-            <button id="loadWhiteboard" class="primary">Load whiteboard</button>
-            <button id="dashboardMode">Close whiteboard</button>
-            <div id="whiteboardHint" class="whiteboard-hint">Ready to load on this page.</div>
-          </div>
-        </div>
-        <div class="whiteboard-frame-wrap">
-          <div id="whiteboardEmpty" class="whiteboard-empty">
-            <div>
-              <strong>Whiteboard</strong>
-              <span id="whiteboardStatus" class="whiteboard-status">
-                Enter the whiteboard address above, then load it on this page.
-              </span>
-            </div>
-          </div>
-          <iframe
-            id="whiteboardFrame"
-            class="whiteboard-frame"
-            title="Whiteboard"
-            allow="fullscreen"
-            referrerpolicy="no-referrer"
-            hidden
-          ></iframe>
-          <div class="whiteboard-mask whiteboard-side-mask" aria-hidden="true"></div>
-          <div class="whiteboard-mask whiteboard-bottom-mask" aria-hidden="true"></div>
-          <div id="whiteboardCourseTitle" class="whiteboard-course-title"></div>
-        </div>
-      </section>
     </div>
 
     <button id="cleanReturn" class="clean-return">Controls</button>
-    <button id="cleanPanic" class="clean-panic">One moment</button>
-    <button id="whiteboardSettings" class="whiteboard-settings">Settings</button>
 
     <script>
       const storageKey = "session-cover-v2";
-      const defaultWhiteboardUrl = "";
       const defaults = {
         presenterName: "Presenter Name",
         presenterEmail: "",
@@ -1126,7 +773,6 @@
         message: "Thank you for joining the session, we will start soon.",
         customState: "Custom",
         customMessage: "Type your custom message here.",
-        whiteboardUrl: defaultWhiteboardUrl,
       };
       const els = {
         body: document.body,
@@ -1156,20 +802,9 @@
         startTimer: document.getElementById("startTimer"),
         startCountdown: document.getElementById("startCountdown"),
         clearTimer: document.getElementById("clearTimer"),
-        whiteboardMode: document.getElementById("whiteboardMode"),
-        dashboardMode: document.getElementById("dashboardMode"),
-        whiteboardUrl: document.getElementById("whiteboardUrl"),
-        loadWhiteboard: document.getElementById("loadWhiteboard"),
-        whiteboardFrame: document.getElementById("whiteboardFrame"),
-        whiteboardEmpty: document.getElementById("whiteboardEmpty"),
-        whiteboardStatus: document.getElementById("whiteboardStatus"),
-        whiteboardHint: document.getElementById("whiteboardHint"),
-        whiteboardCourseTitle: document.getElementById("whiteboardCourseTitle"),
-        whiteboardSettings: document.getElementById("whiteboardSettings"),
         blankScreen: document.getElementById("blankScreen"),
         cleanMode: document.getElementById("cleanMode"),
         cleanReturn: document.getElementById("cleanReturn"),
-        cleanPanic: document.getElementById("cleanPanic"),
         fullscreen: document.getElementById("fullscreen"),
       };
 
@@ -1181,9 +816,6 @@
       function loadState() {
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey));
-          if (saved && !saved.whiteboardUrl) {
-            saved.whiteboardUrl = defaults.whiteboardUrl;
-          }
           return { ...defaults, ...saved };
         } catch {
           return { ...defaults };
@@ -1239,15 +871,6 @@
         els.sessionState.textContent = state.state;
         els.courseTitle.textContent = state.courseTitle;
         renderMessage();
-        els.whiteboardCourseTitle.textContent = state.courseTitle;
-        els.whiteboardUrl.value = state.whiteboardUrl;
-      }
-
-      function normalizeWhiteboardUrl(value) {
-        const trimmed = value.trim();
-        if (!trimmed) return "";
-        if (/^https?:\/\//i.test(trimmed)) return trimmed;
-        return `http://${trimmed}`;
       }
 
       function renderMessage() {
@@ -1262,41 +885,23 @@
       }
 
       function showDashboard() {
-        els.body.classList.remove("view-whiteboard", "whiteboard-loaded", "blank-screen");
-        els.whiteboardMode.textContent = "Whiteboard";
-        els.whiteboardMode.title = "Show whiteboard";
+        els.body.classList.remove("blank-screen");
         blankReturnMode = "dashboard";
       }
 
-      function showWhiteboard() {
-        els.body.classList.remove("blank-screen");
-        toggleCleanMode(false);
-        els.body.classList.add("view-whiteboard");
-        els.whiteboardMode.textContent = "Dashboard";
-        els.whiteboardMode.title = "Return to the session dashboard";
-        loadWhiteboard();
-      }
-
       function showBlankScreen() {
-        blankReturnMode = els.body.classList.contains("view-whiteboard")
-          ? "whiteboard"
-          : els.body.classList.contains("clean")
-            ? "clean"
-            : "dashboard";
+        blankReturnMode = els.body.classList.contains("clean")
+          ? "clean"
+          : "dashboard";
         timerEnd = null;
         timerMode = "break";
         els.returnTimeInput.value = "";
-        els.body.classList.remove("view-whiteboard", "whiteboard-loaded");
         els.body.classList.add("blank-screen");
         updateTimer();
       }
 
       function restoreBlankScreen() {
         els.body.classList.remove("blank-screen");
-        if (blankReturnMode === "whiteboard") {
-          showWhiteboard();
-          return;
-        }
         toggleCleanMode(blankReturnMode === "clean");
         blankReturnMode = "dashboard";
       }
@@ -1307,32 +912,6 @@
         } else {
           showBlankScreen();
         }
-      }
-
-      function loadWhiteboard() {
-        const nextUrl = normalizeWhiteboardUrl(els.whiteboardUrl.value);
-        state.whiteboardUrl = nextUrl;
-        saveState();
-        els.whiteboardUrl.value = nextUrl;
-
-        if (!nextUrl) {
-          els.body.classList.remove("whiteboard-loaded");
-          els.whiteboardFrame.hidden = true;
-          els.whiteboardFrame.removeAttribute("src");
-          els.whiteboardEmpty.hidden = false;
-          els.whiteboardStatus.textContent = "Enter the whiteboard address above, then load it on this page.";
-          els.whiteboardHint.textContent = "Enter a whiteboard address.";
-          return;
-        }
-
-        els.whiteboardHint.textContent = `Loading ${nextUrl}`;
-        els.body.classList.add("whiteboard-loaded");
-        els.whiteboardEmpty.hidden = true;
-        els.whiteboardFrame.hidden = false;
-        els.whiteboardFrame.removeAttribute("src");
-        window.requestAnimationFrame(() => {
-          els.whiteboardFrame.src = nextUrl;
-        });
       }
 
       function setPreset(button) {
@@ -1517,34 +1096,7 @@
       els.startCountdown.addEventListener("click", startCountdownToSession);
       els.clearTimer.addEventListener("click", clearTimer);
 
-      els.whiteboardMode.addEventListener("click", () => {
-        if (els.body.classList.contains("view-whiteboard")) {
-          showDashboard();
-        } else {
-          showWhiteboard();
-        }
-      });
-
       els.blankScreen.addEventListener("click", toggleBlankScreen);
-
-      els.dashboardMode.addEventListener("click", showDashboard);
-      els.loadWhiteboard.addEventListener("click", loadWhiteboard);
-      els.whiteboardSettings.addEventListener("click", () => {
-        els.body.classList.remove("whiteboard-loaded");
-        els.whiteboardHint.textContent = "Change the address, then load the whiteboard.";
-      });
-      els.whiteboardFrame.addEventListener("load", () => {
-        if (els.whiteboardFrame.src && els.whiteboardFrame.src !== "about:blank") {
-          els.body.classList.add("whiteboard-loaded");
-          els.whiteboardHint.textContent = "Whiteboard loaded on this page.";
-        }
-      });
-      els.whiteboardUrl.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          loadWhiteboard();
-        }
-      });
 
       els.cleanMode.addEventListener("click", () => {
         toggleCleanMode();
@@ -1555,13 +1107,8 @@
           restoreBlankScreen();
           return;
         }
-        if (els.body.classList.contains("view-whiteboard")) {
-          showDashboard();
-        }
         toggleCleanMode(false);
       });
-
-      els.cleanPanic.addEventListener("click", showHoldingPage);
 
       function toggleCleanMode(force) {
         const next = typeof force === "boolean" ? force : !els.body.classList.contains("clean");
@@ -1595,7 +1142,7 @@
           toggleCleanMode(false);
           return;
         }
-        if (!["b", "c", "d", "h", "w"].includes(key)) return;
+        if (!["b", "c", "d", "h"].includes(key)) return;
 
         event.preventDefault();
         if (key === "b") {
@@ -1607,21 +1154,9 @@
           if (els.body.classList.contains("blank-screen")) {
             restoreBlankScreen();
           }
-          if (els.body.classList.contains("view-whiteboard")) {
-            showDashboard();
-          }
           toggleCleanMode();
         } else if (key === "h") {
           showHoldingPage();
-        } else if (key === "w") {
-          if (els.body.classList.contains("blank-screen")) {
-            restoreBlankScreen();
-          }
-          if (els.body.classList.contains("view-whiteboard")) {
-            showDashboard();
-          } else {
-            showWhiteboard();
-          }
         }
       });
 

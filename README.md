@@ -1,8 +1,7 @@
 # RemoteSessionConsole
 
-A local dark-mode webpage for online training sessions in Teams, Zoom, or similar screen-sharing tools.
-Provides timers, messages to help manage an online course session.
-Includes optional AirSketch Pro support to provide a quick whiteboard with iPad support without needing new browser tabs.
+A local dark-mode timer console for online training sessions in Teams, Zoom, or similar screen-sharing tools.
+Provides timers and clear status messages to help manage an online course session.
 
 Live URL after the repository is renamed:
 
@@ -18,18 +17,15 @@ Make the browser window the same size as the desktop area you share. Use **Fulls
 
 - Shows a large clock and date.
 - Shows the app name and version on the config screen.
-- Includes a collapsible **Quick Start** guide on the config screen.
+- Includes collapsible **Config Instructions** on the config screen.
 - Lets you configure the presenter name, email, and optional link shown on the display.
 - Shows a large session message such as "Starting soon", "On a break", "One moment", or "Micro break".
 - Keeps a **Custom** quick status based on the last status/message you typed.
 - Starts break timers from quick presets or a specific return time.
 - Uses **Display View** to hide controls while sharing.
 - Shows a small **Controls** button in clean view so you can get back.
-- Uses shortcuts: `Esc` or `C` for Config, `D` for Display View, `B` for Blank, `H` for One moment, and `W` for Whiteboard.
-- Opens a clean whiteboard display from the **Whiteboard** button, with a **One moment** emergency button.
 
 ## Tips
 
 - Set your Zoom or Teams share to this browser window, not the whole desktop, when possible.
 - If you share the whole desktop, put this window full-screen over your icons before sharing.
-- When the whiteboard gives you a new IP address, click **Whiteboard**, choose **Settings** if the board is already loaded, paste the new address, and choose **Load whiteboard**. The address is saved for next time.
