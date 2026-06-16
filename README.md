@@ -23,7 +23,6 @@ Make the browser window the same size as the desktop area you share. Use **Fulls
 - Shows a large session message such as "Starting soon", "On a break", "One moment", or "Micro break".
 - Keeps a **Custom** quick status based on the last status/message you typed.
 - Starts break timers from quick presets or a specific return time.
-- Shows a **Session End** thank-you message with optional email, URL, and follow-up text.
 - Uses **Display View** to hide controls while sharing.
 - Shows a small **Controls** button in clean view so you can get back.
 - Uses shortcuts: `Esc` or `C` for Config, `D` for Display View, `B` for Blank, `H` for One moment, and `W` for Whiteboard.

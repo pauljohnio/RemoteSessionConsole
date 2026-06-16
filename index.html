@@ -607,13 +607,6 @@
         margin-top: 0.5em;
       }
 
-      .message-meta {
-        color: var(--muted);
-        font-size: clamp(1rem, 1.7vw, 1.45rem);
-        font-weight: 680;
-        line-height: 1.2;
-      }
-
       .display-presenter {
         position: absolute;
         right: clamp(28px, 5vw, 54px);
@@ -1030,30 +1023,6 @@
             </div>
           </section>
 
-          <section class="panel">
-            <div class="panel-header">
-              <h2>Session End</h2>
-            </div>
-            <div class="panel-body stack">
-              <button id="sessionEnd" class="primary">Session End</button>
-              <label>
-                Email address
-                <input id="endEmailInput" type="email" placeholder="name@example.com" maxlength="90" />
-              </label>
-              <label>
-                URL
-                <input id="endUrlInput" type="url" placeholder="https://example.com" maxlength="180" />
-              </label>
-              <label>
-                Message
-                <textarea
-                  id="endMessageInput"
-                  placeholder="Thank you for attending."
-                ></textarea>
-              </label>
-            </div>
-          </section>
-
         </aside>
 
         <section class="column">
@@ -1148,7 +1117,6 @@
     <script>
       const storageKey = "session-cover-v2";
       const defaultWhiteboardUrl = "";
-      const defaultEndMessage = "Thank you for attending.";
       const defaults = {
         presenterName: "Presenter Name",
         presenterEmail: "",
@@ -1158,9 +1126,6 @@
         message: "Thank you for joining the session, we will start soon.",
         customState: "Custom",
         customMessage: "Type your custom message here.",
-        endEmail: "",
-        endUrl: "",
-        endMessage: defaultEndMessage,
         whiteboardUrl: defaultWhiteboardUrl,
       };
       const els = {
@@ -1178,10 +1143,6 @@
         courseTitleInput: document.getElementById("courseTitleInput"),
         messageInput: document.getElementById("messageInput"),
         customPreset: document.getElementById("customPreset"),
-        sessionEnd: document.getElementById("sessionEnd"),
-        endEmailInput: document.getElementById("endEmailInput"),
-        endUrlInput: document.getElementById("endUrlInput"),
-        endMessageInput: document.getElementById("endMessageInput"),
         sessionState: document.getElementById("sessionState"),
         courseTitle: document.getElementById("courseTitle"),
         message: document.getElementById("message"),
@@ -1220,9 +1181,6 @@
       function loadState() {
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey));
-          if (saved?.endMessage === "Thank you for attending the course.") {
-            saved.endMessage = defaultEndMessage;
-          }
           if (saved && !saved.whiteboardUrl) {
             saved.whiteboardUrl = defaults.whiteboardUrl;
           }
@@ -1273,9 +1231,6 @@
         els.stateInput.value = state.state;
         els.courseTitleInput.value = state.courseTitle;
         els.messageInput.value = state.message;
-        els.endEmailInput.value = state.endEmail;
-        els.endUrlInput.value = state.endUrl;
-        els.endMessageInput.value = state.endMessage;
         els.presenterName.textContent = state.presenterName;
         els.presenterEmail.textContent = state.presenterEmail;
         els.displayPresenterName.textContent = state.presenterName;
@@ -1296,23 +1251,7 @@
       }
 
       function renderMessage() {
-        els.message.textContent = "";
-
-        if (state.state !== "Session End") {
-          els.message.textContent = state.message;
-          return;
-        }
-
-        const blocks = state.message.split(/\n{2,}/).filter(Boolean);
-        blocks.forEach((block) => {
-          const line = document.createElement("span");
-          line.className = "message-line";
-          if (/^(Email|URL):/i.test(block)) {
-            line.classList.add("message-meta");
-          }
-          line.textContent = block;
-          els.message.appendChild(line);
-        });
+        els.message.textContent = state.message;
       }
 
       function normalizeEndUrl(value) {
@@ -1320,31 +1259,6 @@
         if (!trimmed) return "";
         if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) return trimmed;
         return `https://${trimmed}`;
-      }
-
-      function buildSessionEndMessage() {
-        const lines = [];
-        const endMessage = state.endMessage.trim();
-        const email = state.endEmail.trim();
-        const url = normalizeEndUrl(state.endUrl);
-
-        if (endMessage) lines.push(endMessage);
-        if (email) lines.push(`Email: ${email}`);
-        if (url) lines.push(`URL: ${url}`);
-
-        return lines.join("\n\n");
-      }
-
-      function showSessionEnd() {
-        state.state = "Session End";
-        state.endUrl = normalizeEndUrl(state.endUrl);
-        state.message = buildSessionEndMessage();
-        timerEnd = null;
-        timerMode = "break";
-        els.returnTimeInput.value = "";
-        saveState();
-        updateDisplay();
-        updateTimer();
       }
 
       function showDashboard() {
@@ -1598,29 +1512,6 @@
         saveState();
         updateDisplay();
       });
-
-      els.endEmailInput.addEventListener("input", () => {
-        state.endEmail = els.endEmailInput.value;
-        saveState();
-      });
-
-      els.endUrlInput.addEventListener("input", () => {
-        state.endUrl = els.endUrlInput.value;
-        saveState();
-      });
-
-      els.endUrlInput.addEventListener("blur", () => {
-        state.endUrl = normalizeEndUrl(els.endUrlInput.value);
-        saveState();
-        updateDisplay();
-      });
-
-      els.endMessageInput.addEventListener("input", () => {
-        state.endMessage = els.endMessageInput.value;
-        saveState();
-      });
-
-      els.sessionEnd.addEventListener("click", showSessionEnd);
 
       els.startTimer.addEventListener("click", startTimer);
       els.startCountdown.addEventListener("click", startCountdownToSession);
