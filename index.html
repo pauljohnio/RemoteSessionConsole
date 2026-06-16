@@ -241,15 +241,6 @@
         white-space: nowrap;
       }
 
-      .notes-field span {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        white-space: nowrap;
-      }
-
       .whiteboard-bar button {
         min-height: 36px;
         white-space: nowrap;
@@ -1057,25 +1048,6 @@
             </div>
           </section>
 
-          <section class="panel">
-            <div class="panel-header">
-              <h2>Presenter</h2>
-            </div>
-            <div class="panel-body stack">
-              <label>
-                Name
-                <input id="presenterNameInput" placeholder="Presenter name" maxlength="80" />
-              </label>
-              <label>
-                Email
-                <input id="presenterEmailInput" type="email" placeholder="name@example.com" maxlength="120" />
-              </label>
-              <label>
-                Link
-                <input id="presenterLinkInput" type="url" placeholder="https://example.com" maxlength="180" />
-              </label>
-            </div>
-          </section>
         </aside>
 
         <section class="column">
@@ -1103,16 +1075,20 @@
 
           <section class="panel left-rail">
             <div class="panel-header">
-              <h2>Notes</h2>
-              <div class="panel-actions">
-                <button id="saveNotes" class="small-button">Save notes</button>
-                <button id="clearNotes" class="small-button">Clear</button>
-              </div>
+              <h2>Config Presenter</h2>
             </div>
-            <div class="panel-body">
-              <label class="notes-field">
-                <span>Notes</span>
-                <textarea id="notes" placeholder="Questions to return to, names to call on, links to mention..."></textarea>
+            <div class="panel-body stack">
+              <label>
+                Name
+                <input id="presenterNameInput" placeholder="Presenter name" maxlength="80" />
+              </label>
+              <label>
+                Email
+                <input id="presenterEmailInput" type="email" placeholder="name@example.com" maxlength="120" />
+              </label>
+              <label>
+                Link
+                <input id="presenterLinkInput" type="url" placeholder="https://example.com" maxlength="180" />
               </label>
             </div>
           </section>
@@ -1179,11 +1155,8 @@
         endEmail: "",
         endUrl: "",
         endMessage: defaultEndMessage,
-        notes: "",
         whiteboardUrl: defaultWhiteboardUrl,
       };
-      const oldStartingMessage = "We will begin shortly. Please check your audio and have your notes ready.";
-
       const els = {
         body: document.body,
         hero: document.querySelector(".hero"),
@@ -1217,9 +1190,6 @@
         startCountdown: document.getElementById("startCountdown"),
         clearTimer: document.getElementById("clearTimer"),
         ukTime: document.getElementById("ukTime"),
-        notes: document.getElementById("notes"),
-        saveNotes: document.getElementById("saveNotes"),
-        clearNotes: document.getElementById("clearNotes"),
         whiteboardMode: document.getElementById("whiteboardMode"),
         dashboardMode: document.getElementById("dashboardMode"),
         whiteboardUrl: document.getElementById("whiteboardUrl"),
@@ -1245,9 +1215,6 @@
       function loadState() {
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey));
-          if (saved?.message === oldStartingMessage) {
-            saved.message = defaults.message;
-          }
           if (saved?.endMessage === "Thank you for attending the course.") {
             saved.endMessage = defaultEndMessage;
           }
@@ -1262,55 +1229,6 @@
 
       function saveState() {
         localStorage.setItem(storageKey, JSON.stringify(state));
-      }
-
-      function buildNotesText() {
-        const title = state.courseTitle.trim() || "Untitled session";
-        const savedAt = new Intl.DateTimeFormat("en-GB", {
-          dateStyle: "full",
-          timeStyle: "short",
-        }).format(new Date());
-
-        return [
-          title,
-          `Saved: ${savedAt}`,
-          "",
-          state.notes.trimEnd(),
-          "",
-        ].join("\n");
-      }
-
-      async function saveNotesFile() {
-        const text = buildNotesText();
-        if ("showSaveFilePicker" in window) {
-          try {
-            const handle = await window.showSaveFilePicker({
-              suggestedName: "SessionNotes.txt",
-              types: [
-                {
-                  description: "Text file",
-                  accept: { "text/plain": [".txt"] },
-                },
-              ],
-            });
-            const writable = await handle.createWritable();
-            await writable.write(text);
-            await writable.close();
-            return;
-          } catch (error) {
-            if (error?.name === "AbortError") return;
-          }
-        }
-
-        const blob = new Blob([text], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "SessionNotes.txt";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
       }
 
       function formatClock(date) {
@@ -1353,7 +1271,6 @@
         els.endEmailInput.value = state.endEmail;
         els.endUrlInput.value = state.endUrl;
         els.endMessageInput.value = state.endMessage;
-        els.notes.value = state.notes;
         els.presenterName.textContent = state.presenterName;
         els.presenterEmail.textContent = state.presenterEmail;
         els.displayPresenterName.textContent = state.presenterName;
@@ -1704,19 +1621,6 @@
       });
 
       els.sessionEnd.addEventListener("click", showSessionEnd);
-
-      els.notes.addEventListener("input", () => {
-        state.notes = els.notes.value;
-        saveState();
-      });
-
-      els.saveNotes.addEventListener("click", saveNotesFile);
-
-      els.clearNotes.addEventListener("click", () => {
-        state.notes = "";
-        saveState();
-        updateDisplay();
-      });
 
       els.startTimer.addEventListener("click", startTimer);
       els.startCountdown.addEventListener("click", startCountdownToSession);
