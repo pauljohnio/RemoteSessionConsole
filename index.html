@@ -1,0 +1,1834 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Training Console</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090b0f;
+        --chrome: #0e1218;
+        --panel: #121720;
+        --panel-soft: #171d27;
+        --field: #080b10;
+        --line: #273140;
+        --line-soft: #1d2531;
+        --text: #f7f8fa;
+        --muted: #a2adbc;
+        --dim: #718095;
+        --accent: #4aa3ff;
+        --accent-2: #63d19e;
+        --warn: #ffcc66;
+        --danger: #ff7a7a;
+        --radius: 8px;
+        --shadow: 0 18px 46px rgb(0 0 0 / 22%);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgb(74 163 255 / 8%), transparent 32rem),
+          var(--bg);
+        color: var(--text);
+      }
+
+      body {
+        overflow-x: hidden;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #151b24;
+        color: var(--text);
+        cursor: pointer;
+        min-height: 42px;
+        padding: 0 16px;
+        font-weight: 650;
+        transition:
+          border-color 140ms ease,
+          background 140ms ease,
+          box-shadow 140ms ease,
+          transform 140ms ease;
+      }
+
+      button:hover {
+        border-color: #46576d;
+        background: #1a2230;
+        box-shadow: 0 0 0 3px rgb(74 163 255 / 9%);
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      button.primary {
+        border-color: #3f91d9;
+        background: #12649c;
+      }
+
+      button.ghost {
+        background: #0d1118;
+      }
+
+      button.icon {
+        width: 44px;
+        padding: 0;
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      label {
+        display: grid;
+        gap: 7px;
+        color: var(--muted);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--field);
+        color: var(--text);
+        outline: none;
+      }
+
+      input {
+        min-height: 42px;
+        padding: 0 12px;
+      }
+
+      textarea {
+        min-height: 160px;
+        padding: 14px;
+        resize: vertical;
+        line-height: 1.5;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgb(77 182 255 / 16%);
+      }
+
+      .shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--line-soft);
+        background: rgb(11 15 23 / 96%);
+        backdrop-filter: blur(14px);
+      }
+
+      .brand {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(1.02rem, 1.6vw, 1.18rem);
+        font-weight: 780;
+      }
+
+      .brand span {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      .actions button {
+        min-width: 108px;
+      }
+
+      .view-whiteboard #whiteboardMode,
+      .blank-screen #blankScreen,
+      .clean #cleanMode {
+        border-color: rgb(74 163 255 / 52%);
+        background: rgb(74 163 255 / 14%);
+      }
+
+      .stage {
+        display: grid;
+        grid-template-columns: minmax(330px, 0.95fr) minmax(420px, 1.35fr);
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .whiteboard-view {
+        --whiteboard-top-mask: 8px;
+        --whiteboard-bottom-mask: 120px;
+        --whiteboard-side-mask: 7%;
+        --whiteboard-fit-scale: 1.16;
+        --whiteboard-mask-color: #c8d0d8;
+        display: none;
+        min-height: 0;
+        height: 100%;
+        grid-template-rows: max-content minmax(0, 1fr);
+        gap: 8px;
+        padding: 8px;
+      }
+
+      .whiteboard-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+      }
+
+      .whiteboard-bar label {
+        flex: 0 1 520px;
+        min-width: 240px;
+        display: block;
+      }
+
+      .whiteboard-bar input {
+        min-height: 36px;
+      }
+
+      .whiteboard-url-label span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      .notes-field span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      .whiteboard-bar button {
+        min-height: 36px;
+        white-space: nowrap;
+      }
+
+      .whiteboard-frame-wrap {
+        position: relative;
+        min-height: 0;
+        height: 100%;
+        border: 1px solid var(--line-soft);
+        border-radius: var(--radius);
+        background: var(--whiteboard-mask-color);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .whiteboard-course-title {
+        display: none;
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        left: 18px;
+        z-index: 7;
+        min-height: 1.4em;
+        color: rgb(9 13 19 / 68%);
+        font-size: clamp(0.95rem, 1.3vw, 1.2rem);
+        font-weight: 760;
+        line-height: 1.25;
+        text-align: center;
+        pointer-events: none;
+      }
+
+      .whiteboard-loaded .whiteboard-course-title:not(:empty) {
+        display: block;
+      }
+
+      .whiteboard-mask {
+        display: none;
+        position: absolute;
+        pointer-events: none;
+        z-index: 5;
+      }
+
+      .whiteboard-loaded .whiteboard-mask {
+        display: block;
+      }
+
+      .whiteboard-side-mask {
+        inset: 0;
+        background:
+          linear-gradient(
+            180deg,
+            var(--whiteboard-mask-color) 0,
+            var(--whiteboard-mask-color) var(--whiteboard-top-mask),
+            transparent var(--whiteboard-top-mask)
+          ),
+          linear-gradient(
+            90deg,
+            var(--whiteboard-mask-color) 0,
+            var(--whiteboard-mask-color) var(--whiteboard-side-mask),
+            transparent var(--whiteboard-side-mask),
+            transparent calc(100% - var(--whiteboard-side-mask)),
+            var(--whiteboard-mask-color) calc(100% - var(--whiteboard-side-mask)),
+            var(--whiteboard-mask-color) 100%
+          );
+      }
+
+      .whiteboard-bottom-mask {
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: var(--whiteboard-bottom-mask);
+        background: var(--whiteboard-mask-color);
+      }
+
+      .whiteboard-frame {
+        display: block;
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        border: 0;
+        background: #fff;
+      }
+
+      .whiteboard-loaded .whiteboard-view {
+        grid-template-rows: minmax(0, 1fr);
+        gap: 0;
+        padding: 8px 12px 12px;
+      }
+
+      .whiteboard-loaded .whiteboard-config {
+        display: none;
+      }
+
+      .whiteboard-loaded .whiteboard-frame {
+        height: 100%;
+        transform: scale(var(--whiteboard-fit-scale));
+        transform-origin: center center;
+      }
+
+      .whiteboard-empty {
+        display: grid;
+        place-items: center;
+        min-height: 0;
+        height: 100%;
+        padding: 24px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .whiteboard-empty strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text);
+        font-size: 1.35rem;
+      }
+
+      .whiteboard-status {
+        color: var(--muted);
+      }
+
+      .whiteboard-hint {
+        flex: 1 1 auto;
+        color: var(--muted);
+        font-size: 0.86rem;
+        min-width: 180px;
+      }
+
+      .whiteboard-settings {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 10;
+        display: none;
+        min-height: 36px;
+        color: var(--muted);
+        background: rgb(14 18 24 / 86%);
+        opacity: 0.42;
+        backdrop-filter: blur(12px);
+      }
+
+      .whiteboard-settings:hover,
+      .whiteboard-settings:focus {
+        opacity: 1;
+      }
+
+      .view-whiteboard.whiteboard-loaded .whiteboard-settings {
+        display: block;
+      }
+
+      .view-whiteboard .stage {
+        display: none;
+      }
+
+      .blank-screen .stage,
+      .blank-screen .topbar,
+      .blank-screen .whiteboard-view,
+      .blank-screen .clean-panic,
+      .blank-screen .whiteboard-settings {
+        display: none !important;
+      }
+
+      .blank-screen {
+        background: #000;
+      }
+
+      .blank-screen .shell {
+        display: block;
+        min-height: 100vh;
+        background: #000;
+      }
+
+      .blank-screen .clean-return {
+        display: block;
+      }
+
+      .view-whiteboard .shell {
+        display: block;
+        height: 100vh;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .view-whiteboard .topbar {
+        display: none;
+      }
+
+      .view-whiteboard .whiteboard-view {
+        display: grid;
+        height: 100vh;
+        min-height: 100vh;
+        padding: 0;
+      }
+
+      .view-whiteboard.whiteboard-loaded .whiteboard-view {
+        padding: 8px 12px 12px;
+      }
+
+      .view-whiteboard .whiteboard-settings {
+        right: auto;
+        left: 16px;
+      }
+
+      .view-whiteboard .whiteboard-frame-wrap,
+      .view-whiteboard .whiteboard-frame,
+      .view-whiteboard .whiteboard-empty {
+        height: 100vh;
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .view-whiteboard.whiteboard-loaded .whiteboard-frame-wrap,
+      .view-whiteboard.whiteboard-loaded .whiteboard-frame,
+      .view-whiteboard.whiteboard-loaded .whiteboard-empty {
+        height: 100%;
+        min-height: 0;
+      }
+
+      .column {
+        display: grid;
+        gap: 16px;
+        align-content: start;
+      }
+
+      .panel {
+        border: 1px solid var(--line-soft);
+        border-radius: var(--radius);
+        background: var(--panel);
+        box-shadow: 0 12px 30px rgb(0 0 0 / 16%);
+        overflow: hidden;
+      }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line-soft);
+        background: #141a24;
+      }
+
+      .panel-header h2 {
+        margin: 0;
+        font-size: 0.78rem;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .panel-body {
+        padding: 16px;
+      }
+
+      .panel-body.whiteboard-bar {
+        padding: 6px 8px;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 52vh;
+        display: grid;
+        align-content: center;
+        gap: 26px;
+        padding: clamp(28px, 5vw, 54px);
+        border: 1px solid var(--line-soft);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(135deg, rgb(74 163 255 / 10%), transparent 38%),
+          linear-gradient(180deg, #111821, #0d121a);
+        box-shadow: var(--shadow);
+      }
+
+      .session-state {
+        color: var(--accent-2);
+        font-size: clamp(1rem, 1.7vw, 1.5rem);
+        font-weight: 750;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .course-title {
+        max-width: 920px;
+        color: var(--muted);
+        font-size: clamp(1rem, 1.7vw, 1.45rem);
+        font-weight: 680;
+        line-height: 1.2;
+      }
+
+      .course-title:empty {
+        display: none;
+      }
+
+      .session-heading {
+        display: grid;
+        gap: 6px;
+      }
+
+      .hero.timer-active .session-heading {
+        padding-right: clamp(120px, 18vw, 220px);
+      }
+
+      .clock {
+        font-variant-numeric: tabular-nums;
+        font-size: clamp(3.4rem, 7vw, 7.25rem);
+        font-weight: 820;
+        line-height: 0.92;
+      }
+
+      .current-time {
+        display: grid;
+        gap: 4px;
+      }
+
+      .hero.timer-active .current-time {
+        position: absolute;
+        top: clamp(28px, 4vw, 48px);
+        right: clamp(28px, 5vw, 54px);
+        text-align: right;
+      }
+
+      .hero.timer-active .current-time::before {
+        content: "Now";
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 760;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .hero.timer-active .clock {
+        color: var(--muted);
+        font-size: clamp(1.55rem, 2.1vw, 2.25rem);
+        font-weight: 720;
+      }
+
+      .date-line {
+        color: var(--muted);
+        font-size: clamp(0.95rem, 1.5vw, 1.25rem);
+      }
+
+      .hero.timer-active .date-line {
+        display: none;
+      }
+
+      .message {
+        max-width: 920px;
+        margin: 0;
+        color: var(--text);
+        font-size: clamp(1.65rem, 3.4vw, 3.5rem);
+        line-height: 1.08;
+        font-weight: 760;
+        white-space: pre-line;
+      }
+
+      .message-line {
+        display: block;
+      }
+
+      .message-line + .message-line {
+        margin-top: 0.5em;
+      }
+
+      .message-meta {
+        color: var(--muted);
+        font-size: clamp(1rem, 1.7vw, 1.45rem);
+        font-weight: 680;
+        line-height: 1.2;
+      }
+
+      .display-presenter {
+        position: absolute;
+        right: clamp(28px, 5vw, 54px);
+        bottom: clamp(54px, 7vw, 88px);
+        left: clamp(28px, 5vw, 54px);
+        display: grid;
+        justify-items: start;
+        gap: 5px;
+        color: var(--muted);
+        font-size: clamp(0.95rem, 1.35vw, 1.15rem);
+        font-weight: 680;
+        line-height: 1.2;
+        text-align: left;
+      }
+
+      .display-presenter span:empty {
+        display: none;
+      }
+
+      .display-presenter span + span {
+        color: var(--dim);
+      }
+
+      .clean .display-presenter {
+        right: clamp(28px, 5vw, 54px);
+      }
+
+      .hero.timer-active .message {
+        color: var(--muted);
+        font-size: clamp(1.15rem, 2.2vw, 2.15rem);
+      }
+
+      .countdown-block {
+        display: grid;
+        gap: 8px;
+      }
+
+      .countdown-label {
+        min-height: 1.3em;
+        color: var(--accent-2);
+        font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+        font-weight: 760;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .countdown {
+        font-variant-numeric: tabular-nums;
+        color: var(--warn);
+        font-size: clamp(3rem, 7vw, 6.5rem);
+        font-weight: 780;
+        line-height: 1;
+      }
+
+      .hero.timer-active .countdown {
+        font-size: clamp(5rem, 12vw, 11rem);
+      }
+
+      .countdown.is-idle {
+        display: none;
+      }
+
+      .countdown-target {
+        min-height: 1.35em;
+        color: var(--muted);
+        font-size: clamp(1rem, 1.8vw, 1.25rem);
+      }
+
+      .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 8px;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .timer-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .timer-controls button.is-active {
+        border-color: rgb(90 167 255 / 76%);
+        background: linear-gradient(180deg, #2f6ea8, #255b8c);
+        color: white;
+        box-shadow: 0 0 0 3px rgb(74 163 255 / 14%);
+      }
+
+      .quick-time-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .shortcut-reminder {
+        grid-column: 1 / -1;
+        color: var(--dim);
+        font-size: 0.78rem;
+        font-weight: 680;
+        letter-spacing: 0.04em;
+        text-align: center;
+      }
+
+      .agenda-list {
+        display: grid;
+        gap: 9px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .agenda-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 10px;
+        min-height: 44px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #0b1018;
+      }
+
+      .agenda-item input[type="checkbox"] {
+        width: 18px;
+        min-height: 18px;
+        accent-color: var(--accent-2);
+      }
+
+      .agenda-item .text {
+        color: var(--text);
+        overflow-wrap: anywhere;
+      }
+
+      .agenda-item.done .text {
+        color: var(--dim);
+        text-decoration: line-through;
+      }
+
+      .small-button {
+        min-height: 34px;
+        padding: 0 10px;
+        color: var(--muted);
+      }
+
+      .panel-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .status-strip {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .stat {
+        padding: 14px;
+        border: 1px solid var(--line-soft);
+        border-radius: var(--radius);
+        background: #0d121a;
+      }
+
+      .stat strong {
+        display: block;
+        font-variant-numeric: tabular-nums;
+        font-size: 1.35rem;
+      }
+
+      .stat span {
+        color: var(--muted);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .clean .topbar,
+      .clean .left-rail {
+        display: none;
+      }
+
+      .clean .shell {
+        display: block;
+      }
+
+      .clean .stage {
+        min-height: 100vh;
+        display: block;
+        padding: 0;
+      }
+
+      .clean.view-whiteboard .stage {
+        display: none;
+      }
+
+      .clean.view-whiteboard .whiteboard-view {
+        height: 100vh;
+        min-height: 100vh;
+        padding: 0;
+      }
+
+      .clean.view-whiteboard .whiteboard-config {
+        display: none;
+      }
+
+      .clean.view-whiteboard .whiteboard-frame-wrap,
+      .clean.view-whiteboard .whiteboard-frame,
+      .clean.view-whiteboard .whiteboard-empty {
+        height: 100vh;
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .clean .hero {
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .clean-return {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 10;
+        display: none;
+        opacity: 0.32;
+      }
+
+      .clean-return:hover,
+      .clean-return:focus {
+        opacity: 1;
+      }
+
+      .clean .clean-return,
+      .view-whiteboard .clean-return {
+        display: block;
+      }
+
+      .clean .whiteboard-settings {
+        display: none !important;
+      }
+
+      .clean-panic {
+        position: fixed;
+        right: 120px;
+        bottom: 16px;
+        z-index: 10;
+        display: none;
+        border-color: rgb(255 204 102 / 44%);
+        background: rgb(33 25 10 / 88%);
+        color: var(--warn);
+        opacity: 0.72;
+      }
+
+      .clean-panic:hover,
+      .clean-panic:focus {
+        opacity: 1;
+      }
+
+      .view-whiteboard .clean-panic {
+        display: block;
+      }
+
+      @media (max-width: 980px) {
+        .stage {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          min-height: 46vh;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .actions,
+        .quick-grid,
+        .field-grid,
+        .timer-controls,
+        .status-strip,
+        .whiteboard-bar {
+          grid-template-columns: 1fr;
+          width: 100%;
+        }
+
+        .stage {
+          padding: 12px;
+        }
+
+        .hero {
+          padding: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <h1 id="presenterName">Paul John</h1>
+          <span id="presenterEmail">paul@pauljohn.io</span>
+        </div>
+        <div class="actions">
+          <button id="whiteboardMode" class="ghost" title="Show whiteboard">
+            Whiteboard
+          </button>
+          <button id="blankScreen" class="ghost" title="Toggle blank screen with B">
+            Blank
+          </button>
+          <button id="cleanMode" class="ghost" title="Show only the display area">
+            Display View
+          </button>
+          <button id="fullscreen" class="primary" title="Fill the screen">
+            Fullscreen
+          </button>
+        </div>
+      </header>
+
+      <main class="stage">
+        <div class="shortcut-reminder left-rail">
+          Esc/C Config · D Display · B Blank · H One moment · W Whiteboard
+        </div>
+
+        <aside class="column left-rail">
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Quick Status</h2>
+            </div>
+            <div class="panel-body stack">
+              <div class="quick-grid">
+                <button data-preset="Starting soon" data-message="Thank you for joining the session, we will start soon.">Starting soon</button>
+                <button data-preset="Break" data-message="Session currently on break.">Break</button>
+                <button data-preset="Exercise" data-message="We are currently working on lab / exercise work.">Exercise</button>
+                <button data-preset="One moment" data-message="One moment please.">One moment</button>
+                <button data-preset="Micro break" data-message="We are taking a short pause. The session will resume in a moment.">Micro break</button>
+                <button id="customPreset">Custom</button>
+              </div>
+              <label>
+                Status text
+                <input id="stateInput" value="Starting soon" maxlength="42" />
+              </label>
+              <label>
+                Course title
+                <input id="courseTitleInput" placeholder="Course or session name" maxlength="90" />
+              </label>
+              <label>
+                Main message
+                <textarea id="messageInput">Thank you for joining the session, we will start soon.</textarea>
+              </label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Countdown</h2>
+            </div>
+            <div class="panel-body stack">
+              <div class="field-grid">
+                <label>
+                  Break length
+                  <input id="minutesInput" type="number" min="1" max="180" value="15" />
+                </label>
+                <label>
+                  Target time
+                  <input id="returnTimeInput" type="time" />
+                </label>
+              </div>
+              <div class="timer-controls">
+                <button id="startCountdown">Session start</button>
+                <button id="startTimer">Break return</button>
+              </div>
+              <button id="clearTimer">Clear timer</button>
+              <div class="quick-time-grid" aria-label="Break length shortcuts">
+                <button data-minutes="5">5</button>
+                <button data-minutes="10">10</button>
+                <button data-minutes="15">15</button>
+                <button data-minutes="30">30</button>
+                <button data-minutes="60">60</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Session End</h2>
+            </div>
+            <div class="panel-body stack">
+              <button id="sessionEnd" class="primary">Session End</button>
+              <label>
+                Email address
+                <input id="endEmailInput" type="email" placeholder="name@example.com" maxlength="90" />
+              </label>
+              <label>
+                URL
+                <input id="endUrlInput" type="url" placeholder="https://example.com" maxlength="180" />
+              </label>
+              <label>
+                Message
+                <textarea
+                  id="endMessageInput"
+                  placeholder="Thank you for attending."
+                ></textarea>
+              </label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-body">
+              <div class="status-strip">
+                <div class="stat">
+                  <strong id="ukTime">--:--</strong>
+                  <span>UK Time</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Presenter</h2>
+            </div>
+            <div class="panel-body stack">
+              <label>
+                Name
+                <input id="presenterNameInput" placeholder="Presenter name" maxlength="80" />
+              </label>
+              <label>
+                Email
+                <input id="presenterEmailInput" type="email" placeholder="name@example.com" maxlength="120" />
+              </label>
+              <label>
+                Link
+                <input id="presenterLinkInput" type="url" placeholder="https://example.com" maxlength="180" />
+              </label>
+            </div>
+          </section>
+        </aside>
+
+        <section class="column">
+          <div class="hero" aria-live="polite">
+            <div class="session-heading">
+              <div id="sessionState" class="session-state">Starting soon</div>
+              <div id="courseTitle" class="course-title"></div>
+              <div class="current-time">
+                <div id="clock" class="clock">--:--</div>
+                <div id="dateLine" class="date-line">Loading time</div>
+              </div>
+            </div>
+            <div id="message" class="message">Thank you for joining the session, we will start soon.</div>
+            <div class="countdown-block">
+              <div id="countdownLabel" class="countdown-label"></div>
+              <div id="countdown" class="countdown">--:--</div>
+              <div id="countdownTarget" class="countdown-target"></div>
+            </div>
+            <div class="display-presenter">
+              <span id="displayPresenterName">Paul John</span>
+              <span id="displayPresenterEmail">paul@pauljohn.io</span>
+              <span id="displayPresenterLink"></span>
+            </div>
+          </div>
+
+          <section class="panel left-rail">
+            <div class="panel-header">
+              <h2>Notes</h2>
+              <div class="panel-actions">
+                <button id="saveNotes" class="small-button">Save notes</button>
+                <button id="clearNotes" class="small-button">Clear</button>
+              </div>
+            </div>
+            <div class="panel-body">
+              <label class="notes-field">
+                <span>Notes</span>
+                <textarea id="notes" placeholder="Questions to return to, names to call on, links to mention..."></textarea>
+              </label>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <section id="whiteboardView" class="whiteboard-view" aria-label="Whiteboard portal">
+        <div class="panel whiteboard-config">
+          <div class="panel-body whiteboard-bar">
+            <label class="whiteboard-url-label">
+              <span>Whiteboard URL or IP address</span>
+              <input
+                id="whiteboardUrl"
+                aria-label="Whiteboard URL or IP address"
+                placeholder="Whiteboard URL or IP address"
+              />
+            </label>
+            <button id="loadWhiteboard" class="primary">Load whiteboard</button>
+            <button id="dashboardMode">Close whiteboard</button>
+            <div id="whiteboardHint" class="whiteboard-hint">Ready to load on this page.</div>
+          </div>
+        </div>
+        <div class="whiteboard-frame-wrap">
+          <div id="whiteboardEmpty" class="whiteboard-empty">
+            <div>
+              <strong>Whiteboard</strong>
+              <span id="whiteboardStatus" class="whiteboard-status">
+                Enter the whiteboard address above, then load it on this page.
+              </span>
+            </div>
+          </div>
+          <iframe
+            id="whiteboardFrame"
+            class="whiteboard-frame"
+            title="Whiteboard"
+            allow="fullscreen"
+            referrerpolicy="no-referrer"
+            hidden
+          ></iframe>
+          <div class="whiteboard-mask whiteboard-side-mask" aria-hidden="true"></div>
+          <div class="whiteboard-mask whiteboard-bottom-mask" aria-hidden="true"></div>
+          <div id="whiteboardCourseTitle" class="whiteboard-course-title"></div>
+        </div>
+      </section>
+    </div>
+
+    <button id="cleanReturn" class="clean-return">Controls</button>
+    <button id="cleanPanic" class="clean-panic">One moment</button>
+    <button id="whiteboardSettings" class="whiteboard-settings">Settings</button>
+
+    <script>
+      const storageKey = "session-cover-v1";
+      const defaultWhiteboardUrl = "http://192.168.0.175:8080";
+      const defaultEndMessage = "Thank you for attending.";
+      const defaults = {
+        presenterName: "Paul John",
+        presenterEmail: "paul@pauljohn.io",
+        presenterLink: "",
+        state: "Starting soon",
+        courseTitle: "",
+        message: "Thank you for joining the session, we will start soon.",
+        customState: "Custom",
+        customMessage: "Type your custom message here.",
+        endEmail: "",
+        endUrl: "",
+        endMessage: defaultEndMessage,
+        notes: "",
+        whiteboardUrl: defaultWhiteboardUrl,
+      };
+      const oldStartingMessage = "We will begin shortly. Please check your audio and have your notes ready.";
+
+      const els = {
+        body: document.body,
+        hero: document.querySelector(".hero"),
+        presenterName: document.getElementById("presenterName"),
+        presenterEmail: document.getElementById("presenterEmail"),
+        displayPresenterName: document.getElementById("displayPresenterName"),
+        displayPresenterEmail: document.getElementById("displayPresenterEmail"),
+        displayPresenterLink: document.getElementById("displayPresenterLink"),
+        presenterNameInput: document.getElementById("presenterNameInput"),
+        presenterEmailInput: document.getElementById("presenterEmailInput"),
+        presenterLinkInput: document.getElementById("presenterLinkInput"),
+        stateInput: document.getElementById("stateInput"),
+        courseTitleInput: document.getElementById("courseTitleInput"),
+        messageInput: document.getElementById("messageInput"),
+        customPreset: document.getElementById("customPreset"),
+        sessionEnd: document.getElementById("sessionEnd"),
+        endEmailInput: document.getElementById("endEmailInput"),
+        endUrlInput: document.getElementById("endUrlInput"),
+        endMessageInput: document.getElementById("endMessageInput"),
+        sessionState: document.getElementById("sessionState"),
+        courseTitle: document.getElementById("courseTitle"),
+        message: document.getElementById("message"),
+        clock: document.getElementById("clock"),
+        dateLine: document.getElementById("dateLine"),
+        countdown: document.getElementById("countdown"),
+        countdownLabel: document.getElementById("countdownLabel"),
+        countdownTarget: document.getElementById("countdownTarget"),
+        minutesInput: document.getElementById("minutesInput"),
+        returnTimeInput: document.getElementById("returnTimeInput"),
+        startTimer: document.getElementById("startTimer"),
+        startCountdown: document.getElementById("startCountdown"),
+        clearTimer: document.getElementById("clearTimer"),
+        ukTime: document.getElementById("ukTime"),
+        notes: document.getElementById("notes"),
+        saveNotes: document.getElementById("saveNotes"),
+        clearNotes: document.getElementById("clearNotes"),
+        whiteboardMode: document.getElementById("whiteboardMode"),
+        dashboardMode: document.getElementById("dashboardMode"),
+        whiteboardUrl: document.getElementById("whiteboardUrl"),
+        loadWhiteboard: document.getElementById("loadWhiteboard"),
+        whiteboardFrame: document.getElementById("whiteboardFrame"),
+        whiteboardEmpty: document.getElementById("whiteboardEmpty"),
+        whiteboardStatus: document.getElementById("whiteboardStatus"),
+        whiteboardHint: document.getElementById("whiteboardHint"),
+        whiteboardCourseTitle: document.getElementById("whiteboardCourseTitle"),
+        whiteboardSettings: document.getElementById("whiteboardSettings"),
+        blankScreen: document.getElementById("blankScreen"),
+        cleanMode: document.getElementById("cleanMode"),
+        cleanReturn: document.getElementById("cleanReturn"),
+        cleanPanic: document.getElementById("cleanPanic"),
+        fullscreen: document.getElementById("fullscreen"),
+      };
+
+      let state = loadState();
+      let timerEnd = null;
+      let timerMode = "break";
+      let blankReturnMode = "dashboard";
+
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey));
+          if (saved?.message === oldStartingMessage) {
+            saved.message = defaults.message;
+          }
+          if (saved?.endMessage === "Thank you for attending the course.") {
+            saved.endMessage = defaultEndMessage;
+          }
+          if (saved && (!saved.whiteboardUrl || saved.whiteboardUrl.includes("localhost:8000"))) {
+            saved.whiteboardUrl = defaults.whiteboardUrl;
+          }
+          return { ...defaults, ...saved };
+        } catch {
+          return { ...defaults };
+        }
+      }
+
+      function saveState() {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      }
+
+      function buildNotesText() {
+        const title = state.courseTitle.trim() || "Untitled session";
+        const savedAt = new Intl.DateTimeFormat("en-GB", {
+          dateStyle: "full",
+          timeStyle: "short",
+        }).format(new Date());
+
+        return [
+          title,
+          `Saved: ${savedAt}`,
+          "",
+          state.notes.trimEnd(),
+          "",
+        ].join("\n");
+      }
+
+      async function saveNotesFile() {
+        const text = buildNotesText();
+        if ("showSaveFilePicker" in window) {
+          try {
+            const handle = await window.showSaveFilePicker({
+              suggestedName: "SessionNotes.txt",
+              types: [
+                {
+                  description: "Text file",
+                  accept: { "text/plain": [".txt"] },
+                },
+              ],
+            });
+            const writable = await handle.createWritable();
+            await writable.write(text);
+            await writable.close();
+            return;
+          } catch (error) {
+            if (error?.name === "AbortError") return;
+          }
+        }
+
+        const blob = new Blob([text], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "SessionNotes.txt";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function formatClock(date) {
+        return new Intl.DateTimeFormat("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(date);
+      }
+
+      function formatDuration(ms) {
+        const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        if (hours > 0) {
+          return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        }
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      }
+
+      function getReturnDateFromInput() {
+        const value = els.returnTimeInput.value;
+        if (!value) return null;
+        const [hours, minutes] = value.split(":").map(Number);
+        const target = new Date();
+        target.setHours(hours, minutes, 0, 0);
+        if (target.getTime() <= Date.now()) {
+          target.setDate(target.getDate() + 1);
+        }
+        return target;
+      }
+
+      function updateDisplay() {
+        els.presenterNameInput.value = state.presenterName;
+        els.presenterEmailInput.value = state.presenterEmail;
+        els.presenterLinkInput.value = state.presenterLink;
+        els.stateInput.value = state.state;
+        els.courseTitleInput.value = state.courseTitle;
+        els.messageInput.value = state.message;
+        els.endEmailInput.value = state.endEmail;
+        els.endUrlInput.value = state.endUrl;
+        els.endMessageInput.value = state.endMessage;
+        els.notes.value = state.notes;
+        els.presenterName.textContent = state.presenterName;
+        els.presenterEmail.textContent = state.presenterEmail;
+        els.displayPresenterName.textContent = state.presenterName;
+        els.displayPresenterEmail.textContent = state.presenterEmail;
+        els.displayPresenterLink.textContent = state.presenterLink;
+        els.sessionState.textContent = state.state;
+        els.courseTitle.textContent = state.courseTitle;
+        renderMessage();
+        els.whiteboardCourseTitle.textContent = state.courseTitle;
+        els.whiteboardUrl.value = state.whiteboardUrl;
+      }
+
+      function normalizeWhiteboardUrl(value) {
+        const trimmed = value.trim();
+        if (!trimmed) return "";
+        if (/^https?:\/\//i.test(trimmed)) return trimmed;
+        return `http://${trimmed}`;
+      }
+
+      function renderMessage() {
+        els.message.textContent = "";
+
+        if (state.state !== "Session End") {
+          els.message.textContent = state.message;
+          return;
+        }
+
+        const blocks = state.message.split(/\n{2,}/).filter(Boolean);
+        blocks.forEach((block) => {
+          const line = document.createElement("span");
+          line.className = "message-line";
+          if (/^(Email|URL):/i.test(block)) {
+            line.classList.add("message-meta");
+          }
+          line.textContent = block;
+          els.message.appendChild(line);
+        });
+      }
+
+      function normalizeEndUrl(value) {
+        const trimmed = value.trim();
+        if (!trimmed) return "";
+        if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) return trimmed;
+        return `https://${trimmed}`;
+      }
+
+      function buildSessionEndMessage() {
+        const lines = [];
+        const endMessage = state.endMessage.trim();
+        const email = state.endEmail.trim();
+        const url = normalizeEndUrl(state.endUrl);
+
+        if (endMessage) lines.push(endMessage);
+        if (email) lines.push(`Email: ${email}`);
+        if (url) lines.push(`URL: ${url}`);
+
+        return lines.join("\n\n");
+      }
+
+      function showSessionEnd() {
+        state.state = "Session End";
+        state.endUrl = normalizeEndUrl(state.endUrl);
+        state.message = buildSessionEndMessage();
+        timerEnd = null;
+        timerMode = "break";
+        els.returnTimeInput.value = "";
+        saveState();
+        updateDisplay();
+        updateTimer();
+      }
+
+      function showDashboard() {
+        els.body.classList.remove("view-whiteboard", "whiteboard-loaded", "blank-screen");
+        els.whiteboardMode.textContent = "Whiteboard";
+        els.whiteboardMode.title = "Show whiteboard";
+        blankReturnMode = "dashboard";
+      }
+
+      function showWhiteboard() {
+        els.body.classList.remove("blank-screen");
+        toggleCleanMode(false);
+        els.body.classList.add("view-whiteboard");
+        els.whiteboardMode.textContent = "Dashboard";
+        els.whiteboardMode.title = "Return to the session dashboard";
+        loadWhiteboard();
+      }
+
+      function showBlankScreen() {
+        blankReturnMode = els.body.classList.contains("view-whiteboard")
+          ? "whiteboard"
+          : els.body.classList.contains("clean")
+            ? "clean"
+            : "dashboard";
+        timerEnd = null;
+        timerMode = "break";
+        els.returnTimeInput.value = "";
+        els.body.classList.remove("view-whiteboard", "whiteboard-loaded");
+        els.body.classList.add("blank-screen");
+        updateTimer();
+      }
+
+      function restoreBlankScreen() {
+        els.body.classList.remove("blank-screen");
+        if (blankReturnMode === "whiteboard") {
+          showWhiteboard();
+          return;
+        }
+        toggleCleanMode(blankReturnMode === "clean");
+        blankReturnMode = "dashboard";
+      }
+
+      function toggleBlankScreen() {
+        if (els.body.classList.contains("blank-screen")) {
+          restoreBlankScreen();
+        } else {
+          showBlankScreen();
+        }
+      }
+
+      function loadWhiteboard() {
+        const nextUrl = normalizeWhiteboardUrl(els.whiteboardUrl.value);
+        state.whiteboardUrl = nextUrl;
+        saveState();
+        els.whiteboardUrl.value = nextUrl;
+
+        if (!nextUrl) {
+          els.body.classList.remove("whiteboard-loaded");
+          els.whiteboardFrame.hidden = true;
+          els.whiteboardFrame.removeAttribute("src");
+          els.whiteboardEmpty.hidden = false;
+          els.whiteboardStatus.textContent = "Enter the whiteboard address above, then load it on this page.";
+          els.whiteboardHint.textContent = "Enter a whiteboard address.";
+          return;
+        }
+
+        els.whiteboardHint.textContent = `Loading ${nextUrl}`;
+        els.body.classList.add("whiteboard-loaded");
+        els.whiteboardEmpty.hidden = true;
+        els.whiteboardFrame.hidden = false;
+        els.whiteboardFrame.removeAttribute("src");
+        window.requestAnimationFrame(() => {
+          els.whiteboardFrame.src = nextUrl;
+        });
+      }
+
+      function setPreset(button) {
+        state.state = button.dataset.preset;
+        state.message = button.dataset.message;
+        saveState();
+        updateDisplay();
+      }
+
+      function setCustomPreset() {
+        state.state = state.customState;
+        state.message = state.customMessage;
+        saveState();
+        updateDisplay();
+      }
+
+      function cacheCustomPreset() {
+        state.customState = els.stateInput.value;
+        state.customMessage = els.messageInput.value;
+      }
+
+      function showHoldingPage() {
+        state.state = "One moment";
+        state.message = "One moment please.";
+        timerEnd = null;
+        timerMode = "break";
+        els.returnTimeInput.value = "";
+        showDashboard();
+        toggleCleanMode(true);
+        saveState();
+        updateDisplay();
+        updateTimer();
+      }
+
+      function startTimerFromMinutes(minutes) {
+        const now = new Date();
+        timerMode = "break";
+        state.state = "Break";
+        state.message = "Session currently on break.";
+        saveState();
+        updateDisplay();
+        timerEnd = new Date(now.getTime() + minutes * 60 * 1000);
+        els.returnTimeInput.value = `${String(timerEnd.getHours()).padStart(2, "0")}:${String(timerEnd.getMinutes()).padStart(2, "0")}`;
+        updateTimer();
+      }
+
+      function startTimer() {
+        const returnDate = getReturnDateFromInput();
+        timerMode = "break";
+        state.state = "Break";
+        state.message = "Session currently on break.";
+        saveState();
+        updateDisplay();
+        if (returnDate) {
+          timerEnd = returnDate;
+        } else {
+          startTimerFromMinutes(Number(els.minutesInput.value || 15));
+        }
+        updateTimer();
+      }
+
+      function startCountdownToSession() {
+        const startDate = getReturnDateFromInput();
+        if (!startDate) return;
+        timerMode = "start";
+        state.state = "Starting soon";
+        state.message = "Thank you for joining the session, we will start soon.";
+        saveState();
+        updateDisplay();
+        timerEnd = startDate;
+        updateTimer();
+      }
+
+      function clearTimer() {
+        timerEnd = null;
+        timerMode = "break";
+        els.returnTimeInput.value = "";
+        updateTimer();
+      }
+
+      function updateTimer() {
+        if (!timerEnd) {
+          els.countdown.textContent = "--:--";
+          els.countdown.classList.add("is-idle");
+          els.hero.classList.remove("timer-active");
+          els.countdownLabel.textContent = "";
+          els.countdownTarget.textContent = "";
+          els.startCountdown.classList.remove("is-active");
+          els.startTimer.classList.remove("is-active");
+          return;
+        }
+
+        els.countdown.classList.remove("is-idle");
+        els.hero.classList.add("timer-active");
+        els.startCountdown.classList.toggle("is-active", timerMode === "start");
+        els.startTimer.classList.toggle("is-active", timerMode === "break");
+        const remaining = timerEnd.getTime() - Date.now();
+        if (remaining <= 0) {
+          els.countdown.textContent = "00:00";
+          els.countdownLabel.textContent = timerMode === "start" ? "Session time reached" : "Break finished";
+          els.countdownTarget.textContent = "";
+          return;
+        }
+
+        els.countdown.textContent = formatDuration(remaining);
+        els.countdownLabel.textContent = timerMode === "start" ? "Session starts in" : "Break ends in";
+        els.countdownTarget.textContent =
+          timerMode === "start" ? `Starts at ${formatClock(timerEnd)}` : `Return at ${formatClock(timerEnd)}`;
+      }
+
+      function tick() {
+        const now = new Date();
+        els.clock.textContent = formatClock(now);
+        els.dateLine.textContent = new Intl.DateTimeFormat("en-GB", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(now);
+        els.ukTime.textContent = new Intl.DateTimeFormat("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Europe/London",
+        }).format(now);
+        updateTimer();
+      }
+
+      document.querySelectorAll("[data-preset]").forEach((button) => {
+        button.addEventListener("click", () => setPreset(button));
+      });
+
+      els.customPreset.addEventListener("click", setCustomPreset);
+
+      document.querySelectorAll("[data-minutes]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const minutes = Number(button.dataset.minutes);
+          els.minutesInput.value = String(minutes);
+          startTimerFromMinutes(minutes);
+        });
+      });
+
+      els.presenterNameInput.addEventListener("input", () => {
+        state.presenterName = els.presenterNameInput.value;
+        saveState();
+        updateDisplay();
+      });
+
+      els.presenterEmailInput.addEventListener("input", () => {
+        state.presenterEmail = els.presenterEmailInput.value;
+        saveState();
+        updateDisplay();
+      });
+
+      els.presenterLinkInput.addEventListener("input", () => {
+        state.presenterLink = els.presenterLinkInput.value;
+        saveState();
+        updateDisplay();
+      });
+
+      els.presenterLinkInput.addEventListener("blur", () => {
+        state.presenterLink = normalizeEndUrl(els.presenterLinkInput.value);
+        saveState();
+        updateDisplay();
+      });
+
+      els.stateInput.addEventListener("input", () => {
+        state.state = els.stateInput.value;
+        cacheCustomPreset();
+        saveState();
+        updateDisplay();
+      });
+
+      els.courseTitleInput.addEventListener("input", () => {
+        state.courseTitle = els.courseTitleInput.value;
+        saveState();
+        updateDisplay();
+      });
+
+      els.messageInput.addEventListener("input", () => {
+        state.message = els.messageInput.value;
+        cacheCustomPreset();
+        saveState();
+        updateDisplay();
+      });
+
+      els.endEmailInput.addEventListener("input", () => {
+        state.endEmail = els.endEmailInput.value;
+        saveState();
+      });
+
+      els.endUrlInput.addEventListener("input", () => {
+        state.endUrl = els.endUrlInput.value;
+        saveState();
+      });
+
+      els.endUrlInput.addEventListener("blur", () => {
+        state.endUrl = normalizeEndUrl(els.endUrlInput.value);
+        saveState();
+        updateDisplay();
+      });
+
+      els.endMessageInput.addEventListener("input", () => {
+        state.endMessage = els.endMessageInput.value;
+        saveState();
+      });
+
+      els.sessionEnd.addEventListener("click", showSessionEnd);
+
+      els.notes.addEventListener("input", () => {
+        state.notes = els.notes.value;
+        saveState();
+      });
+
+      els.saveNotes.addEventListener("click", saveNotesFile);
+
+      els.clearNotes.addEventListener("click", () => {
+        state.notes = "";
+        saveState();
+        updateDisplay();
+      });
+
+      els.startTimer.addEventListener("click", startTimer);
+      els.startCountdown.addEventListener("click", startCountdownToSession);
+      els.clearTimer.addEventListener("click", clearTimer);
+
+      els.whiteboardMode.addEventListener("click", () => {
+        if (els.body.classList.contains("view-whiteboard")) {
+          showDashboard();
+        } else {
+          showWhiteboard();
+        }
+      });
+
+      els.blankScreen.addEventListener("click", toggleBlankScreen);
+
+      els.dashboardMode.addEventListener("click", showDashboard);
+      els.loadWhiteboard.addEventListener("click", loadWhiteboard);
+      els.whiteboardSettings.addEventListener("click", () => {
+        els.body.classList.remove("whiteboard-loaded");
+        els.whiteboardHint.textContent = "Change the address, then load the whiteboard.";
+      });
+      els.whiteboardFrame.addEventListener("load", () => {
+        if (els.whiteboardFrame.src && els.whiteboardFrame.src !== "about:blank") {
+          els.body.classList.add("whiteboard-loaded");
+          els.whiteboardHint.textContent = "Whiteboard loaded on this page.";
+        }
+      });
+      els.whiteboardUrl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          loadWhiteboard();
+        }
+      });
+
+      els.cleanMode.addEventListener("click", () => {
+        toggleCleanMode();
+      });
+
+      els.cleanReturn.addEventListener("click", () => {
+        if (els.body.classList.contains("blank-screen")) {
+          restoreBlankScreen();
+          return;
+        }
+        if (els.body.classList.contains("view-whiteboard")) {
+          showDashboard();
+        }
+        toggleCleanMode(false);
+      });
+
+      els.cleanPanic.addEventListener("click", showHoldingPage);
+
+      function toggleCleanMode(force) {
+        const next = typeof force === "boolean" ? force : !els.body.classList.contains("clean");
+        els.body.classList.toggle("clean", next);
+        els.cleanMode.textContent = els.body.classList.contains("clean")
+          ? "Show controls"
+          : "Display View";
+      }
+
+      els.fullscreen.addEventListener("click", async () => {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
+      });
+
+      window.addEventListener("resize", tick);
+      window.addEventListener("keydown", (event) => {
+        const target = event.target;
+        const isTyping =
+          target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement ||
+          target?.isContentEditable;
+        if (isTyping || event.altKey || event.ctrlKey || event.metaKey) return;
+
+        const key = event.key.toLowerCase();
+        if (event.key === "Escape") {
+          event.preventDefault();
+          showDashboard();
+          toggleCleanMode(false);
+          return;
+        }
+        if (!["b", "c", "d", "h", "w"].includes(key)) return;
+
+        event.preventDefault();
+        if (key === "b") {
+          toggleBlankScreen();
+        } else if (key === "c") {
+          showDashboard();
+          toggleCleanMode(false);
+        } else if (key === "d") {
+          if (els.body.classList.contains("blank-screen")) {
+            restoreBlankScreen();
+          }
+          if (els.body.classList.contains("view-whiteboard")) {
+            showDashboard();
+          }
+          toggleCleanMode();
+        } else if (key === "h") {
+          showHoldingPage();
+        } else if (key === "w") {
+          if (els.body.classList.contains("blank-screen")) {
+            restoreBlankScreen();
+          }
+          if (els.body.classList.contains("view-whiteboard")) {
+            showDashboard();
+          } else {
+            showWhiteboard();
+          }
+        }
+      });
+
+      updateDisplay();
+      tick();
+      setInterval(tick, 1000);
+    </script>
+  </body>
+</html>
