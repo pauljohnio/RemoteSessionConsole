@@ -737,6 +737,31 @@
         text-transform: uppercase;
       }
 
+      .quick-start {
+        grid-column: 1 / -1;
+        border: 1px solid var(--line-soft);
+        border-radius: var(--radius);
+        background: rgb(18 23 32 / 62%);
+        color: var(--muted);
+      }
+
+      .quick-start summary {
+        cursor: pointer;
+        padding: 10px 14px;
+        font-size: 0.8rem;
+        font-weight: 760;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .quick-start p {
+        margin: 0;
+        padding: 0 14px 12px;
+        color: var(--dim);
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+
       .agenda-list {
         display: grid;
         gap: 9px;
@@ -934,6 +959,14 @@
 
       <main class="stage">
         <div class="app-meta left-rail">Remote Session Console · v1.0.0</div>
+        <details class="quick-start left-rail">
+          <summary>Quick Start</summary>
+          <p>
+            Configure the presenter details, choose a quick status or type your own message, then use
+            Display View for sharing. Use Esc/C to return to config, B to blank, H for One moment, and W
+            for Whiteboard.
+          </p>
+        </details>
         <div class="shortcut-reminder left-rail">
           Esc/C Config · D Display · B Blank · H One moment · W Whiteboard
         </div>

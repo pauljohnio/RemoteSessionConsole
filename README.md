@@ -18,6 +18,7 @@ Make the browser window the same size as the desktop area you share. Use **Fulls
 
 - Shows a large clock and date.
 - Shows the app name and version on the config screen.
+- Includes a collapsible **Quick Start** guide on the config screen.
 - Lets you configure the presenter name, email, and optional link shown on the display.
 - Shows a large session message such as "Starting soon", "On a break", "One moment", or "Micro break".
 - Keeps a **Custom** quick status based on the last status/message you typed.
