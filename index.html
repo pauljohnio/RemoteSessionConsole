@@ -92,6 +92,16 @@
         background: #0d1118;
       }
 
+      button small {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 620;
+        letter-spacing: 0;
+        line-height: 1.25;
+      }
+
       button.icon {
         width: 44px;
         padding: 0;
@@ -430,8 +440,14 @@
 
       .quick-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
         gap: 8px;
+      }
+
+      .quick-grid button {
+        min-height: 64px;
+        padding: 10px 12px;
+        text-align: left;
       }
 
       .field-grid {
@@ -462,6 +478,37 @@
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 8px;
+      }
+
+      .quick-time-grid button {
+        min-height: 54px;
+        padding: 8px;
+        text-align: center;
+      }
+
+      .quick-time-grid strong {
+        display: block;
+        font-size: 1.05rem;
+        line-height: 1;
+      }
+
+      .quick-time-grid span {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 720;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .input-hint {
+        color: var(--dim);
+        font-size: 0.75rem;
+        font-weight: 620;
+        letter-spacing: 0;
+        line-height: 1.35;
+        text-transform: none;
       }
 
       .app-meta {
@@ -646,25 +693,43 @@
         <details class="quick-start left-rail">
           <summary>Config Instructions</summary>
           <p>
-            Configure the presenter details, choose a quick status or type your own message, then use
-            Display View for sharing. Use the countdown controls for breaks or start times, and Blank if
-            you need a clean pause.
+            Configure the presenter details, choose a session status preset or type your own message,
+            then use Display View for sharing. Use the countdown controls for breaks or start times, and
+            Blank if you need a clean pause.
           </p>
         </details>
 
         <aside class="column left-rail">
           <section class="panel">
             <div class="panel-header">
-              <h2>Quick Status</h2>
+              <h2>Session Status Presets</h2>
             </div>
             <div class="panel-body stack">
               <div class="quick-grid">
-                <button data-preset="Starting soon" data-message="Thank you for joining the session, we will start soon.">Starting soon</button>
-                <button data-preset="Break" data-message="Session currently on break.">Break</button>
-                <button data-preset="Exercise" data-message="We are currently working on lab / exercise work.">Exercise</button>
-                <button data-preset="One moment" data-message="One moment please.">One moment</button>
-                <button data-preset="Micro break" data-message="We are taking a short pause. The session will resume in a moment.">Micro break</button>
-                <button id="customPreset">Custom</button>
+                <button data-preset="Starting soon" data-message="Thank you for joining the session, we will start soon.">
+                  <span>Starting Soon</span>
+                  <small>Welcome screen</small>
+                </button>
+                <button data-preset="Break" data-message="Session currently on break.">
+                  <span>Break</span>
+                  <small>Return timer ready</small>
+                </button>
+                <button data-preset="Exercise / Lab" data-message="We are currently working on an exercise or lab activity.">
+                  <span>Exercise / Lab</span>
+                  <small>Practical work</small>
+                </button>
+                <button data-preset="One moment" data-message="One moment please.">
+                  <span>One Moment</span>
+                  <small>Short holding page</small>
+                </button>
+                <button data-preset="Brief pause" data-message="We are taking a brief pause. The session will resume shortly.">
+                  <span>Brief Pause</span>
+                  <small>Professional pause</small>
+                </button>
+                <button id="customPreset">
+                  <span>Custom</span>
+                  <small>Your saved wording</small>
+                </button>
               </div>
               <label>
                 Status text
@@ -693,7 +758,14 @@
                 </label>
                 <label>
                   Target time
-                  <input id="returnTimeInput" type="time" />
+                  <input
+                    id="returnTimeInput"
+                    type="text"
+                    inputmode="text"
+                    placeholder="14:30 or 2:30 PM"
+                    autocomplete="off"
+                  />
+                  <span class="input-hint">Accepts 24-hour or 12-hour time.</span>
                 </label>
               </div>
               <div class="timer-controls">
@@ -702,11 +774,11 @@
               </div>
               <button id="clearTimer">Clear timer</button>
               <div class="quick-time-grid" aria-label="Break length presets">
-                <button data-minutes="5">5</button>
-                <button data-minutes="10">10</button>
-                <button data-minutes="15">15</button>
-                <button data-minutes="30">30</button>
-                <button data-minutes="60">60</button>
+                <button data-minutes="5"><strong>5</strong><span>min</span></button>
+                <button data-minutes="10"><strong>10</strong><span>min</span></button>
+                <button data-minutes="15"><strong>15</strong><span>min</span></button>
+                <button data-minutes="30"><strong>30</strong><span>min</span></button>
+                <button data-minutes="60"><strong>60</strong><span>min</span></button>
               </div>
             </div>
           </section>
@@ -845,15 +917,37 @@
       }
 
       function getReturnDateFromInput() {
-        const value = els.returnTimeInput.value;
-        if (!value) return null;
-        const [hours, minutes] = value.split(":").map(Number);
+        const parsed = parseClockTime(els.returnTimeInput.value);
+        if (!parsed) return null;
         const target = new Date();
-        target.setHours(hours, minutes, 0, 0);
+        target.setHours(parsed.hours, parsed.minutes, 0, 0);
         if (target.getTime() <= Date.now()) {
           target.setDate(target.getDate() + 1);
         }
         return target;
+      }
+
+      function parseClockTime(value) {
+        const trimmed = value.trim().toLowerCase().replace(/\s+/g, "");
+        if (!trimmed) return null;
+
+        const match = trimmed.match(/^(\d{1,2})(?::?(\d{2}))?(am|pm)?$/);
+        if (!match) return null;
+
+        let hours = Number(match[1]);
+        const minutes = match[2] === undefined ? 0 : Number(match[2]);
+        const meridiem = match[3];
+
+        if (minutes > 59) return null;
+        if (meridiem) {
+          if (hours < 1 || hours > 12) return null;
+          if (meridiem === "pm" && hours !== 12) hours += 12;
+          if (meridiem === "am" && hours === 12) hours = 0;
+        } else if (hours > 23) {
+          return null;
+        }
+
+        return { hours, minutes };
       }
 
       function updateDisplay() {
