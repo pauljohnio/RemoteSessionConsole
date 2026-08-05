@@ -519,7 +519,7 @@
         position: absolute;
         top: 52%;
         right: clamp(28px, 5vw, 54px);
-        max-width: clamp(120px, 15vw, 260px);
+        width: min(var(--display-logo-size, 180px), 28vw);
         max-height: clamp(72px, 18vh, 190px);
         object-fit: contain;
         opacity: 0.94;
@@ -810,7 +810,7 @@
       body:not(.clean) .preview-panel .display-logo {
         top: 62%;
         right: clamp(20px, 3vw, 30px);
-        max-width: clamp(72px, 10vw, 120px);
+        width: min(calc(var(--display-logo-size, 180px) * 0.46), 12vw);
         max-height: clamp(48px, 8vw, 82px);
       }
 
@@ -868,7 +868,7 @@
 
       .asset-row {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-columns: minmax(0, 1fr) minmax(138px, 0.36fr) auto auto;
         gap: 8px;
         align-items: end;
       }
@@ -885,6 +885,27 @@
         text-overflow: ellipsis;
         text-transform: none;
         white-space: nowrap;
+      }
+
+      .range-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .range-label span {
+        color: var(--dim);
+        font-size: 0.72rem;
+        font-weight: 720;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+
+      input[type="range"] {
+        min-height: 34px;
+        padding: 0;
+        accent-color: var(--accent);
       }
 
       .clean .topbar,
@@ -1207,6 +1228,13 @@
                   Display image
                   <span id="displayImageName" class="asset-name">No image selected</span>
                 </label>
+                <label>
+                  <span class="range-label">
+                    Image size
+                    <span id="displayImageSizeValue">100%</span>
+                  </span>
+                  <input id="displayImageSize" type="range" min="60" max="160" step="5" value="100" />
+                </label>
                 <button id="chooseDisplayImage" class="ghost" type="button">Choose image</button>
                 <button id="removeDisplayImage" class="ghost" type="button">Remove image</button>
               </div>
@@ -1308,6 +1336,7 @@
         },
         displayImageData: "",
         displayImageName: "",
+        displayImageScale: "100",
       };
       const profileFields = [
         "presenterName",
@@ -1325,6 +1354,7 @@
         "customPalette",
         "displayImageData",
         "displayImageName",
+        "displayImageScale",
       ];
       const els = {
         body: document.body,
@@ -1363,6 +1393,8 @@
         paletteAccent: document.getElementById("paletteAccent"),
         paletteTimer: document.getElementById("paletteTimer"),
         displayImageName: document.getElementById("displayImageName"),
+        displayImageSize: document.getElementById("displayImageSize"),
+        displayImageSizeValue: document.getElementById("displayImageSizeValue"),
         chooseDisplayImage: document.getElementById("chooseDisplayImage"),
         removeDisplayImage: document.getElementById("removeDisplayImage"),
         displayImageInput: document.getElementById("displayImageInput"),
@@ -1649,6 +1681,12 @@
         els.displayLogo.hidden = !state.displayImageData;
         els.hero.classList.toggle("has-logo", Boolean(state.displayImageData));
         els.displayImageName.textContent = state.displayImageName || "No image selected";
+        els.displayImageSize.value = state.displayImageScale;
+        els.displayImageSizeValue.textContent = `${state.displayImageScale}%`;
+        els.body.style.setProperty(
+          "--display-logo-size",
+          `${Math.round(Number(state.displayImageScale || defaults.displayImageScale) * 1.8)}px`,
+        );
         els.sessionState.textContent = state.state;
         els.courseTitle.textContent = state.courseTitle;
         els.body.classList.toggle("countdown-hidden", !state.showCountdown);
@@ -1689,6 +1727,12 @@
       function removeDisplayImage() {
         state.displayImageData = "";
         state.displayImageName = "";
+        saveState();
+        updateDisplay();
+      }
+
+      function updateDisplayImageSize() {
+        state.displayImageScale = els.displayImageSize.value || defaults.displayImageScale;
         saveState();
         updateDisplay();
       }
@@ -2107,6 +2151,7 @@
       });
       els.chooseDisplayImage.addEventListener("click", () => els.displayImageInput.click());
       els.removeDisplayImage.addEventListener("click", removeDisplayImage);
+      els.displayImageSize.addEventListener("input", updateDisplayImageSize);
       els.displayImageInput.addEventListener("change", () => {
         setDisplayImage(els.displayImageInput.files?.[0]);
       });
