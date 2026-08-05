@@ -596,7 +596,7 @@
         font-weight: 820;
       }
 
-      .preview-panel .hero {
+      body:not(.clean) .preview-panel .hero {
         min-height: clamp(250px, 34vh, 360px);
         gap: 18px;
         padding: clamp(22px, 3.5vw, 36px);
@@ -605,45 +605,62 @@
         box-shadow: none;
       }
 
-      .preview-panel .session-state {
+      body:not(.clean) .preview-panel .session-state {
         font-size: clamp(0.9rem, 1.3vw, 1.15rem);
       }
 
-      .preview-panel .message {
+      body:not(.clean) .preview-panel .message {
         font-size: clamp(1.35rem, 2.4vw, 2.4rem);
       }
 
-      .preview-panel .countdown {
+      body:not(.clean) .preview-panel .countdown {
         font-size: clamp(2.4rem, 5vw, 4.8rem);
       }
 
-      .preview-panel .hero.timer-active {
-        gap: 14px;
+      body:not(.clean) .preview-panel .hero.timer-active {
+        align-content: start;
+        gap: 10px;
       }
 
-      .preview-panel .hero.timer-active .session-heading {
-        padding-right: clamp(88px, 14vw, 150px);
+      body:not(.clean) .preview-panel .hero.timer-active .session-heading {
+        padding-right: 0;
       }
 
-      .preview-panel .hero.timer-active .current-time {
-        top: clamp(20px, 3vw, 30px);
-        right: clamp(22px, 3.5vw, 36px);
+      body:not(.clean) .preview-panel .hero.timer-active .current-time {
+        display: none;
       }
 
-      .preview-panel .hero.timer-active .clock {
-        font-size: clamp(1.1rem, 1.5vw, 1.55rem);
+      body:not(.clean) .preview-panel .hero.timer-active .message {
+        font-size: clamp(0.95rem, 1.45vw, 1.35rem);
+        line-height: 1.15;
       }
 
-      .preview-panel .hero.timer-active .message {
-        font-size: clamp(1rem, 1.7vw, 1.65rem);
+      body:not(.clean) .preview-panel .hero.timer-active .countdown {
+        font-size: clamp(2.6rem, 5.2vw, 4.2rem);
       }
 
-      .preview-panel .hero.timer-active .countdown {
-        font-size: clamp(3.1rem, 7vw, 5.4rem);
+      body:not(.clean) .preview-panel .hero.timer-active .countdown-block {
+        gap: 4px;
       }
 
-      .preview-panel .display-presenter {
+      body:not(.clean) .preview-panel .hero.timer-active .countdown-label {
+        min-height: 0;
+        font-size: 0.82rem;
+      }
+
+      body:not(.clean) .preview-panel .hero.timer-active .countdown-target {
+        display: none;
+      }
+
+      body:not(.clean) .preview-panel .display-presenter {
         bottom: clamp(24px, 4vw, 42px);
+      }
+
+      body:not(.clean) .preview-panel .display-presenter {
+        position: static;
+        margin-top: 2px;
+        font-size: clamp(0.78rem, 1.05vw, 0.95rem);
+        gap: 2px;
       }
 
       .presenter-panel .panel-body {
