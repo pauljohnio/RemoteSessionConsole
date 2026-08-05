@@ -305,21 +305,6 @@
         min-width: 108px;
       }
 
-      .theme-control {
-        display: grid;
-        align-items: center;
-        min-width: 132px;
-      }
-
-      .theme-control span {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip: rect(0 0 0 0);
-        white-space: nowrap;
-      }
-
       .blank-screen #blankScreen,
       .clean #cleanMode {
         border-color: var(--active-border);
@@ -792,7 +777,24 @@
       }
 
       .presenter-panel .panel-body {
+        gap: 10px;
+      }
+
+      .presenter-grid,
+      .profile-grid {
+        display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .profile-actions {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .profile-actions button {
+        min-width: 0;
       }
 
       .clean .topbar,
@@ -901,7 +903,9 @@
         .actions,
         .quick-grid,
         .field-grid,
-        .presenter-panel .panel-body,
+        .presenter-grid,
+        .profile-grid,
+        .profile-actions,
         .timer-controls {
           grid-template-columns: 1fr;
           width: 100%;
@@ -925,15 +929,6 @@
           <span id="presenterEmail"></span>
         </div>
         <div class="actions">
-          <label class="theme-control">
-            <span>Colour scheme</span>
-            <select id="themeSelect" title="Choose colour scheme">
-              <option value="default">Current</option>
-              <option value="tka">TKA</option>
-              <option value="ocean">Ocean</option>
-              <option value="contrast">High Contrast</option>
-            </select>
-          </label>
           <button id="instructionsToggle" class="ghost" title="Show configuration help">
             Instructions
           </button>
@@ -1055,21 +1050,48 @@
 
           <section class="panel left-rail presenter-panel">
             <div class="panel-header">
-              <h2>Config Presenter</h2>
+              <h2>Config Presenter & Profile</h2>
             </div>
             <div class="panel-body stack">
-              <label>
-                Name
-                <input id="presenterNameInput" placeholder="Presenter name" maxlength="80" />
-              </label>
-              <label>
-                Email
-                <input id="presenterEmailInput" type="email" placeholder="name@example.com" maxlength="120" />
-              </label>
-              <label>
-                Link
-                <input id="presenterLinkInput" type="url" placeholder="https://example.com" maxlength="180" />
-              </label>
+              <div class="presenter-grid">
+                <label>
+                  Name
+                  <input id="presenterNameInput" placeholder="Presenter name" maxlength="80" />
+                </label>
+                <label>
+                  Email
+                  <input id="presenterEmailInput" type="email" placeholder="name@example.com" maxlength="120" />
+                </label>
+                <label>
+                  Link
+                  <input id="presenterLinkInput" type="url" placeholder="https://example.com" maxlength="180" />
+                </label>
+              </div>
+              <div class="profile-grid">
+                <label>
+                  Profile name
+                  <input id="profileNameInput" placeholder="Client or course name" maxlength="80" />
+                </label>
+                <label>
+                  Saved profile
+                  <select id="profileSelect"></select>
+                </label>
+                <label>
+                  Colour scheme
+                  <select id="themeSelect" title="Choose colour scheme">
+                    <option value="default">Current</option>
+                    <option value="tka">TKA</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="contrast">High Contrast</option>
+                  </select>
+                </label>
+              </div>
+              <div class="profile-actions">
+                <button id="saveProfile" type="button">Save profile</button>
+                <button id="loadProfile" class="ghost" type="button">Load</button>
+                <button id="deleteProfile" class="ghost" type="button">Delete</button>
+                <button id="resetSession" class="ghost" type="button">Reset session</button>
+              </div>
             </div>
           </section>
         </section>
@@ -1134,6 +1156,7 @@
 
     <script>
       const storageKey = "session-cover-v2";
+      const profileStorageKey = "session-cover-profiles-v1";
       const defaults = {
         presenterName: "Presenter Name",
         presenterEmail: "",
@@ -1146,7 +1169,22 @@
         startLabel: "Session starts in",
         showCountdown: true,
         theme: "default",
+        timerMinutes: "15",
       };
+      const profileFields = [
+        "presenterName",
+        "presenterEmail",
+        "presenterLink",
+        "state",
+        "courseTitle",
+        "message",
+        "customState",
+        "customMessage",
+        "startLabel",
+        "showCountdown",
+        "theme",
+        "timerMinutes",
+      ];
       const els = {
         body: document.body,
         hero: document.querySelector(".hero"),
@@ -1178,6 +1216,12 @@
         clearTimer: document.getElementById("clearTimer"),
         toggleCountdown: document.getElementById("toggleCountdown"),
         themeSelect: document.getElementById("themeSelect"),
+        profileNameInput: document.getElementById("profileNameInput"),
+        profileSelect: document.getElementById("profileSelect"),
+        saveProfile: document.getElementById("saveProfile"),
+        loadProfile: document.getElementById("loadProfile"),
+        deleteProfile: document.getElementById("deleteProfile"),
+        resetSession: document.getElementById("resetSession"),
         blankScreen: document.getElementById("blankScreen"),
         cleanMode: document.getElementById("cleanMode"),
         cleanReturn: document.getElementById("cleanReturn"),
@@ -1187,6 +1231,7 @@
       };
 
       let state = loadState();
+      let profiles = loadProfiles();
       let timerEnd = null;
       let timerMode = "break";
       let blankReturnMode = "dashboard";
@@ -1202,6 +1247,45 @@
 
       function saveState() {
         localStorage.setItem(storageKey, JSON.stringify(state));
+      }
+
+      function loadProfiles() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(profileStorageKey));
+          return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+        } catch {
+          return {};
+        }
+      }
+
+      function saveProfiles() {
+        localStorage.setItem(profileStorageKey, JSON.stringify(profiles));
+      }
+
+      function getProfileSnapshot() {
+        return profileFields.reduce((profile, field) => {
+          profile[field] = state[field] ?? defaults[field];
+          return profile;
+        }, {});
+      }
+
+      function renderProfiles(selectedName = els.profileSelect.value) {
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "Choose saved profile";
+
+        const options = Object.keys(profiles)
+          .sort((a, b) => a.localeCompare(b))
+          .map((name) => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            return option;
+          });
+
+        els.profileSelect.replaceChildren(placeholder, ...options);
+        els.profileSelect.value = profiles[selectedName] ? selectedName : "";
+        els.profileNameInput.value = profiles[selectedName] ? selectedName : els.profileNameInput.value;
       }
 
       function formatClock(date) {
@@ -1269,6 +1353,7 @@
         els.messageInput.value = state.message;
         els.startLabelInput.value = state.startLabel;
         els.themeSelect.value = state.theme;
+        els.minutesInput.value = state.timerMinutes;
         els.body.dataset.theme = state.theme === "default" ? "" : state.theme;
         els.presenterName.textContent = state.presenterName;
         els.presenterEmail.textContent = state.presenterEmail;
@@ -1362,6 +1447,7 @@
       function setTimerFromMinutes(minutes, mode) {
         const now = new Date();
         timerMode = mode;
+        state.timerMinutes = String(minutes);
         state.showCountdown = true;
         if (mode === "start") {
           state.state = "Starting soon";
@@ -1420,6 +1506,57 @@
         updateTimer();
       }
 
+      function resetSession() {
+        timerEnd = null;
+        timerMode = "break";
+        els.returnTimeInput.value = "";
+        state = {
+          ...state,
+          state: defaults.state,
+          courseTitle: defaults.courseTitle,
+          message: defaults.message,
+          customState: defaults.customState,
+          customMessage: defaults.customMessage,
+          startLabel: defaults.startLabel,
+          showCountdown: defaults.showCountdown,
+          timerMinutes: defaults.timerMinutes,
+        };
+        saveState();
+        updateDisplay();
+        updateTimer();
+      }
+
+      function saveCurrentProfile() {
+        const fallbackName =
+          state.courseTitle.trim() || state.presenterName.trim() || "Client profile";
+        const profileName = (els.profileNameInput.value.trim() || fallbackName).slice(0, 80);
+        profiles[profileName] = getProfileSnapshot();
+        saveProfiles();
+        renderProfiles(profileName);
+      }
+
+      function loadSelectedProfile() {
+        const profileName = els.profileSelect.value;
+        if (!profileName || !profiles[profileName]) return;
+        timerEnd = null;
+        timerMode = "break";
+        els.returnTimeInput.value = "";
+        state = { ...defaults, ...state, ...profiles[profileName] };
+        saveState();
+        renderProfiles(profileName);
+        updateDisplay();
+        updateTimer();
+      }
+
+      function deleteSelectedProfile() {
+        const profileName = els.profileSelect.value;
+        if (!profileName || !profiles[profileName]) return;
+        delete profiles[profileName];
+        saveProfiles();
+        els.profileNameInput.value = "";
+        renderProfiles("");
+      }
+
       function updateTimer() {
         if (!timerEnd) {
           els.countdown.textContent = "--:--";
@@ -1471,7 +1608,6 @@
       document.querySelectorAll("[data-minutes]").forEach((button) => {
         button.addEventListener("click", () => {
           const minutes = Number(button.dataset.minutes);
-          els.minutesInput.value = String(minutes);
           startTimerFromMinutes(minutes);
         });
       });
@@ -1527,11 +1663,25 @@
         updateTimer();
       });
 
+      els.minutesInput.addEventListener("input", () => {
+        state.timerMinutes = els.minutesInput.value || defaults.timerMinutes;
+        saveState();
+      });
+
       els.themeSelect.addEventListener("change", () => {
         state.theme = els.themeSelect.value;
         saveState();
         updateDisplay();
       });
+
+      els.profileSelect.addEventListener("change", () => {
+        els.profileNameInput.value = els.profileSelect.value;
+      });
+
+      els.saveProfile.addEventListener("click", saveCurrentProfile);
+      els.loadProfile.addEventListener("click", loadSelectedProfile);
+      els.deleteProfile.addEventListener("click", deleteSelectedProfile);
+      els.resetSession.addEventListener("click", resetSession);
 
       els.startTimer.addEventListener("click", startTimer);
       els.startCountdown.addEventListener("click", startCountdownToSession);
@@ -1623,6 +1773,7 @@
         }
       });
 
+      renderProfiles();
       updateDisplay();
       tick();
       setInterval(tick, 1000);
