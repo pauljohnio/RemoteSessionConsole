@@ -597,7 +597,7 @@
       }
 
       .preview-panel .hero {
-        min-height: clamp(300px, 42vh, 410px);
+        min-height: clamp(250px, 34vh, 360px);
         gap: 18px;
         padding: clamp(22px, 3.5vw, 36px);
         border: 0;
@@ -617,8 +617,37 @@
         font-size: clamp(2.4rem, 5vw, 4.8rem);
       }
 
+      .preview-panel .hero.timer-active {
+        gap: 14px;
+      }
+
+      .preview-panel .hero.timer-active .session-heading {
+        padding-right: clamp(88px, 14vw, 150px);
+      }
+
+      .preview-panel .hero.timer-active .current-time {
+        top: clamp(20px, 3vw, 30px);
+        right: clamp(22px, 3.5vw, 36px);
+      }
+
+      .preview-panel .hero.timer-active .clock {
+        font-size: clamp(1.1rem, 1.5vw, 1.55rem);
+      }
+
+      .preview-panel .hero.timer-active .message {
+        font-size: clamp(1rem, 1.7vw, 1.65rem);
+      }
+
+      .preview-panel .hero.timer-active .countdown {
+        font-size: clamp(3.1rem, 7vw, 5.4rem);
+      }
+
       .preview-panel .display-presenter {
         bottom: clamp(24px, 4vw, 42px);
+      }
+
+      .presenter-panel .panel-body {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
       .clean .topbar,
@@ -727,6 +756,7 @@
         .actions,
         .quick-grid,
         .field-grid,
+        .presenter-panel .panel-body,
         .timer-controls {
           grid-template-columns: 1fr;
           width: 100%;
@@ -868,6 +898,26 @@
               </div>
             </div>
           </section>
+
+          <section class="panel left-rail presenter-panel">
+            <div class="panel-header">
+              <h2>Config Presenter</h2>
+            </div>
+            <div class="panel-body stack">
+              <label>
+                Name
+                <input id="presenterNameInput" placeholder="Presenter name" maxlength="80" />
+              </label>
+              <label>
+                Email
+                <input id="presenterEmailInput" type="email" placeholder="name@example.com" maxlength="120" />
+              </label>
+              <label>
+                Link
+                <input id="presenterLinkInput" type="url" placeholder="https://example.com" maxlength="180" />
+              </label>
+            </div>
+          </section>
         </section>
 
         <aside class="column left-rail">
@@ -893,6 +943,15 @@
                   <span class="input-hint">Accepts 24-hour or 12-hour time.</span>
                 </label>
               </div>
+              <label>
+                Session countdown label
+                <input
+                  id="startLabelInput"
+                  value="Session starts in"
+                  maxlength="48"
+                  placeholder="Session starts in"
+                />
+              </label>
               <div class="timer-controls">
                 <button id="startCountdown">Session start</button>
                 <button id="startTimer">Break return</button>
@@ -910,26 +969,6 @@
                 <button data-minutes="45"><strong>45</strong><span>min</span></button>
                 <button data-minutes="60"><strong>60</strong><span>min</span></button>
               </div>
-            </div>
-          </section>
-
-          <section class="panel left-rail">
-            <div class="panel-header">
-              <h2>Config Presenter</h2>
-            </div>
-            <div class="panel-body stack">
-              <label>
-                Name
-                <input id="presenterNameInput" placeholder="Presenter name" maxlength="80" />
-              </label>
-              <label>
-                Email
-                <input id="presenterEmailInput" type="email" placeholder="name@example.com" maxlength="120" />
-              </label>
-              <label>
-                Link
-                <input id="presenterLinkInput" type="url" placeholder="https://example.com" maxlength="180" />
-              </label>
             </div>
           </section>
         </aside>
@@ -950,6 +989,7 @@
         message: "Thank you for joining the session, we will start soon.",
         customState: "Custom",
         customMessage: "Type your custom message here.",
+        startLabel: "Session starts in",
         showCountdown: true,
       };
       const els = {
@@ -977,6 +1017,7 @@
         countdownTarget: document.getElementById("countdownTarget"),
         minutesInput: document.getElementById("minutesInput"),
         returnTimeInput: document.getElementById("returnTimeInput"),
+        startLabelInput: document.getElementById("startLabelInput"),
         startTimer: document.getElementById("startTimer"),
         startCountdown: document.getElementById("startCountdown"),
         clearTimer: document.getElementById("clearTimer"),
@@ -1059,6 +1100,10 @@
         return { hours, minutes };
       }
 
+      function getStartLabel() {
+        return state.startLabel.trim() || defaults.startLabel;
+      }
+
       function updateDisplay() {
         els.presenterNameInput.value = state.presenterName;
         els.presenterEmailInput.value = state.presenterEmail;
@@ -1066,6 +1111,7 @@
         els.stateInput.value = state.state;
         els.courseTitleInput.value = state.courseTitle;
         els.messageInput.value = state.message;
+        els.startLabelInput.value = state.startLabel;
         els.presenterName.textContent = state.presenterName;
         els.presenterEmail.textContent = state.presenterEmail;
         els.displayPresenterName.textContent = state.presenterName;
@@ -1241,7 +1287,7 @@
         }
 
         els.countdown.textContent = formatDuration(remaining);
-        els.countdownLabel.textContent = timerMode === "start" ? "Session starts in" : "Break ends in";
+        els.countdownLabel.textContent = timerMode === "start" ? getStartLabel() : "Break ends in";
         els.countdownTarget.textContent =
           timerMode === "start" ? `Starts at ${formatClock(timerEnd)}` : `Return at ${formatClock(timerEnd)}`;
       }
@@ -1314,6 +1360,13 @@
         cacheCustomPreset();
         saveState();
         updateDisplay();
+      });
+
+      els.startLabelInput.addEventListener("input", () => {
+        state.startLabel = els.startLabelInput.value;
+        saveState();
+        updateDisplay();
+        updateTimer();
       });
 
       els.startTimer.addEventListener("click", startTimer);

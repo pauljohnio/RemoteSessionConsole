@@ -23,6 +23,7 @@ Make the browser window the same size as the desktop area you share. Use **Fulls
 - Keeps a **Custom** status preset based on the last status/message you typed.
 - Starts break or session-start timers from quick presets, a timer length, or a specific return time in 12-hour or 24-hour format.
 - Lets you hide or show the countdown on the display without stopping the timer.
+- Lets you customise the session-start countdown label.
 - Uses **Display View** to hide controls while sharing.
 - Shows a small **Controls** button in clean view so you can get back.
 
