@@ -799,7 +799,7 @@
 
       .profile-actions {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(7, minmax(0, 1fr));
         gap: 8px;
       }
 
@@ -992,6 +992,7 @@
         <div class="panel-body">
           <ul>
             <li>Set presenter details for the shared display footer.</li>
+            <li>Save or import profiles when reusing settings for clients.</li>
             <li>Choose a session status preset or type your own message.</li>
             <li>Use countdown controls for breaks or session start times.</li>
             <li>Use Display View when sharing, and Blank for a clean pause.</li>
@@ -1148,9 +1149,12 @@
                 <button id="saveProfile" type="button">Save profile</button>
                 <button id="renameProfile" class="ghost" type="button">Rename</button>
                 <button id="loadProfile" class="ghost" type="button">Load</button>
+                <button id="exportProfile" class="ghost" type="button">Export file</button>
+                <button id="importProfile" class="ghost" type="button">Import file</button>
                 <button id="deleteProfile" class="ghost" type="button">Delete</button>
                 <button id="resetSession" class="ghost" type="button">Reset session</button>
               </div>
+              <input id="profileFileInput" type="file" accept="application/json,.json" hidden />
             </div>
           </section>
         </section>
@@ -1291,6 +1295,9 @@
         saveProfile: document.getElementById("saveProfile"),
         renameProfile: document.getElementById("renameProfile"),
         loadProfile: document.getElementById("loadProfile"),
+        exportProfile: document.getElementById("exportProfile"),
+        importProfile: document.getElementById("importProfile"),
+        profileFileInput: document.getElementById("profileFileInput"),
         deleteProfile: document.getElementById("deleteProfile"),
         resetSession: document.getElementById("resetSession"),
         blankScreen: document.getElementById("blankScreen"),
@@ -1343,6 +1350,18 @@
             field === "customPalette"
               ? { ...defaults.customPalette, ...state.customPalette }
               : state[field] ?? defaults[field];
+          return profile;
+        }, {});
+      }
+
+      function normalizeProfile(rawProfile) {
+        const source = rawProfile && typeof rawProfile === "object" ? rawProfile : {};
+        return profileFields.reduce((profile, field) => {
+          if (field === "customPalette") {
+            profile[field] = { ...defaults.customPalette, ...source.customPalette };
+          } else {
+            profile[field] = source[field] ?? defaults[field];
+          }
           return profile;
         }, {});
       }
@@ -1720,7 +1739,7 @@
         const fallbackName =
           state.courseTitle.trim() || state.presenterName.trim() || "Client profile";
         const profileName = (els.profileNameInput.value.trim() || fallbackName).slice(0, 80);
-        profiles[profileName] = getProfileSnapshot();
+        profiles[profileName] = normalizeProfile(getProfileSnapshot());
         saveProfiles();
         renderProfiles(profileName);
       }
@@ -1737,6 +1756,78 @@
         renderProfiles(profileName);
         updateDisplay();
         updateTimer();
+      }
+
+      function getSelectedProfileName() {
+        return els.profileSelect.value || els.profileNameInput.value.trim();
+      }
+
+      function getExportProfile() {
+        const profileName = getSelectedProfileName();
+        if (profileName && profiles[profileName]) {
+          return {
+            profileName,
+            profile: normalizeProfile(profiles[profileName]),
+          };
+        }
+
+        return {
+          profileName: (profileName || state.courseTitle.trim() || state.presenterName.trim() || "Remote Session Profile").slice(0, 80),
+          profile: normalizeProfile(getProfileSnapshot()),
+        };
+      }
+
+      function safeFileName(value) {
+        return value
+          .trim()
+          .replace(/[^a-z0-9]+/gi, "-")
+          .replace(/^-+|-+$/g, "")
+          .toLowerCase() || "remote-session-profile";
+      }
+
+      function exportProfileFile() {
+        const exported = getExportProfile();
+        const payload = {
+          app: "RemoteSessionConsole",
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          profileName: exported.profileName,
+          profile: exported.profile,
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {
+          type: "application/json",
+        });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `${safeFileName(exported.profileName)}.remote-session-profile.json`;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+      }
+
+      function importProfileFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          try {
+            const imported = JSON.parse(String(reader.result || "{}"));
+            const importedProfile = imported.profile || imported;
+            const importedName =
+              String(imported.profileName || imported.name || file.name.replace(/\.json$/i, ""))
+                .trim()
+                .slice(0, 80) || "Imported profile";
+            profiles[importedName] = normalizeProfile(importedProfile);
+            saveProfiles();
+            renderProfiles(importedName);
+            loadSelectedProfile();
+          } catch {
+            window.alert("That profile file could not be imported.");
+          } finally {
+            els.profileFileInput.value = "";
+          }
+        });
+        reader.readAsText(file);
       }
 
       function renameSelectedProfile() {
@@ -1900,6 +1991,11 @@
       els.saveProfile.addEventListener("click", saveCurrentProfile);
       els.renameProfile.addEventListener("click", renameSelectedProfile);
       els.loadProfile.addEventListener("click", loadSelectedProfile);
+      els.exportProfile.addEventListener("click", exportProfileFile);
+      els.importProfile.addEventListener("click", () => els.profileFileInput.click());
+      els.profileFileInput.addEventListener("change", () => {
+        importProfileFile(els.profileFileInput.files?.[0]);
+      });
       els.deleteProfile.addEventListener("click", deleteSelectedProfile);
       els.resetSession.addEventListener("click", resetSession);
 
