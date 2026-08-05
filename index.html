@@ -128,6 +128,10 @@
         --active-border: rgb(88 183 255 / 60%);
       }
 
+      body[data-theme="custom"] {
+        background: var(--bg);
+      }
+
       * {
         box-sizing: border-box;
       }
@@ -233,6 +237,12 @@
       input {
         min-height: 34px;
         padding: 0 12px;
+      }
+
+      input[type="color"] {
+        min-height: 34px;
+        padding: 3px;
+        cursor: pointer;
       }
 
       select {
@@ -789,12 +799,37 @@
 
       .profile-actions {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 8px;
       }
 
       .profile-actions button {
         min-width: 0;
+        padding-inline: 8px;
+      }
+
+      .palette-editor {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--field);
+      }
+
+      .palette-editor summary {
+        min-height: 36px;
+        padding: 9px 10px;
+        color: var(--muted);
+        cursor: pointer;
+        font-size: 0.78rem;
+        font-weight: 760;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .palette-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        padding: 0 10px 10px;
       }
 
       .clean .topbar,
@@ -905,6 +940,7 @@
         .field-grid,
         .presenter-grid,
         .profile-grid,
+        .palette-grid,
         .profile-actions,
         .timer-controls {
           grid-template-columns: 1fr;
@@ -1083,11 +1119,34 @@
                     <option value="tka">TKA</option>
                     <option value="ocean">Ocean</option>
                     <option value="contrast">High Contrast</option>
+                    <option value="custom">Custom palette</option>
                   </select>
                 </label>
               </div>
+              <details class="palette-editor">
+                <summary>Custom palette</summary>
+                <div class="palette-grid">
+                  <label>
+                    Background
+                    <input id="paletteBg" type="color" />
+                  </label>
+                  <label>
+                    Text
+                    <input id="paletteText" type="color" />
+                  </label>
+                  <label>
+                    Accent
+                    <input id="paletteAccent" type="color" />
+                  </label>
+                  <label>
+                    Timer
+                    <input id="paletteTimer" type="color" />
+                  </label>
+                </div>
+              </details>
               <div class="profile-actions">
                 <button id="saveProfile" type="button">Save profile</button>
+                <button id="renameProfile" class="ghost" type="button">Rename</button>
                 <button id="loadProfile" class="ghost" type="button">Load</button>
                 <button id="deleteProfile" class="ghost" type="button">Delete</button>
                 <button id="resetSession" class="ghost" type="button">Reset session</button>
@@ -1170,6 +1229,12 @@
         showCountdown: true,
         theme: "default",
         timerMinutes: "15",
+        customPalette: {
+          bg: "#090b0f",
+          text: "#f7f8fa",
+          accent: "#4aa3ff",
+          timer: "#ffcc66",
+        },
       };
       const profileFields = [
         "presenterName",
@@ -1184,6 +1249,7 @@
         "showCountdown",
         "theme",
         "timerMinutes",
+        "customPalette",
       ];
       const els = {
         body: document.body,
@@ -1216,9 +1282,14 @@
         clearTimer: document.getElementById("clearTimer"),
         toggleCountdown: document.getElementById("toggleCountdown"),
         themeSelect: document.getElementById("themeSelect"),
+        paletteBg: document.getElementById("paletteBg"),
+        paletteText: document.getElementById("paletteText"),
+        paletteAccent: document.getElementById("paletteAccent"),
+        paletteTimer: document.getElementById("paletteTimer"),
         profileNameInput: document.getElementById("profileNameInput"),
         profileSelect: document.getElementById("profileSelect"),
         saveProfile: document.getElementById("saveProfile"),
+        renameProfile: document.getElementById("renameProfile"),
         loadProfile: document.getElementById("loadProfile"),
         deleteProfile: document.getElementById("deleteProfile"),
         resetSession: document.getElementById("resetSession"),
@@ -1239,7 +1310,11 @@
       function loadState() {
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey));
-          return { ...defaults, ...saved };
+          return {
+            ...defaults,
+            ...saved,
+            customPalette: { ...defaults.customPalette, ...saved?.customPalette },
+          };
         } catch {
           return { ...defaults };
         }
@@ -1264,7 +1339,10 @@
 
       function getProfileSnapshot() {
         return profileFields.reduce((profile, field) => {
-          profile[field] = state[field] ?? defaults[field];
+          profile[field] =
+            field === "customPalette"
+              ? { ...defaults.customPalette, ...state.customPalette }
+              : state[field] ?? defaults[field];
           return profile;
         }, {});
       }
@@ -1344,7 +1422,110 @@
         return state.startLabel.trim() || defaults.startLabel;
       }
 
+      function hexToRgb(hex) {
+        const clean = hex.replace("#", "");
+        const value = Number.parseInt(clean, 16);
+        return {
+          r: (value >> 16) & 255,
+          g: (value >> 8) & 255,
+          b: value & 255,
+        };
+      }
+
+      function rgbToHex({ r, g, b }) {
+        return `#${[r, g, b].map((value) => Math.round(value).toString(16).padStart(2, "0")).join("")}`;
+      }
+
+      function mixHex(first, second, amount) {
+        const a = hexToRgb(first);
+        const b = hexToRgb(second);
+        return rgbToHex({
+          r: a.r + (b.r - a.r) * amount,
+          g: a.g + (b.g - a.g) * amount,
+          b: a.b + (b.b - a.b) * amount,
+        });
+      }
+
+      function hexToRgbString(hex, alpha = 1) {
+        const { r, g, b } = hexToRgb(hex);
+        return `rgb(${r} ${g} ${b} / ${alpha})`;
+      }
+
+      function applyCustomPalette() {
+        const palette = { ...defaults.customPalette, ...state.customPalette };
+        const panel = mixHex(palette.bg, palette.text, 0.08);
+        const panelSoft = mixHex(palette.bg, palette.text, 0.12);
+        const field = mixHex(palette.bg, "#000000", 0.18);
+        const line = mixHex(palette.bg, palette.text, 0.24);
+        const muted = mixHex(palette.text, palette.bg, 0.34);
+        const dim = mixHex(palette.text, palette.bg, 0.52);
+        const styles = {
+          "--bg": palette.bg,
+          "--chrome": mixHex(palette.bg, palette.text, 0.04),
+          "--panel": panel,
+          "--panel-soft": panelSoft,
+          "--field": field,
+          "--line": line,
+          "--line-soft": mixHex(palette.bg, palette.text, 0.16),
+          "--text": palette.text,
+          "--muted": muted,
+          "--dim": dim,
+          "--accent": palette.accent,
+          "--accent-2": mixHex(palette.accent, palette.text, 0.24),
+          "--warn": palette.timer,
+          "--topbar": hexToRgbString(mixHex(palette.bg, palette.text, 0.04), 0.96),
+          "--button": mixHex(palette.bg, palette.text, 0.1),
+          "--button-hover": mixHex(palette.bg, palette.text, 0.16),
+          "--button-ghost": mixHex(palette.bg, "#000000", 0.08),
+          "--primary": mixHex(palette.accent, palette.bg, 0.22),
+          "--primary-border": mixHex(palette.accent, palette.text, 0.18),
+          "--panel-header": mixHex(palette.bg, palette.text, 0.1),
+          "--hero-from": panel,
+          "--hero-to": mixHex(palette.bg, "#000000", 0.1),
+          "--hero-glow": hexToRgbString(palette.accent, 0.14),
+          "--focus-ring": hexToRgbString(palette.accent, 0.18),
+          "--active-fill": hexToRgbString(palette.accent, 0.14),
+          "--active-border": hexToRgbString(palette.accent, 0.54),
+        };
+
+        Object.entries(styles).forEach(([property, value]) => {
+          els.body.style.setProperty(property, value);
+        });
+      }
+
+      function clearCustomPaletteStyles() {
+        [
+          "--bg",
+          "--chrome",
+          "--panel",
+          "--panel-soft",
+          "--field",
+          "--line",
+          "--line-soft",
+          "--text",
+          "--muted",
+          "--dim",
+          "--accent",
+          "--accent-2",
+          "--warn",
+          "--topbar",
+          "--button",
+          "--button-hover",
+          "--button-ghost",
+          "--primary",
+          "--primary-border",
+          "--panel-header",
+          "--hero-from",
+          "--hero-to",
+          "--hero-glow",
+          "--focus-ring",
+          "--active-fill",
+          "--active-border",
+        ].forEach((property) => els.body.style.removeProperty(property));
+      }
+
       function updateDisplay() {
+        state.customPalette = { ...defaults.customPalette, ...state.customPalette };
         els.presenterNameInput.value = state.presenterName;
         els.presenterEmailInput.value = state.presenterEmail;
         els.presenterLinkInput.value = state.presenterLink;
@@ -1354,7 +1535,16 @@
         els.startLabelInput.value = state.startLabel;
         els.themeSelect.value = state.theme;
         els.minutesInput.value = state.timerMinutes;
+        els.paletteBg.value = state.customPalette.bg;
+        els.paletteText.value = state.customPalette.text;
+        els.paletteAccent.value = state.customPalette.accent;
+        els.paletteTimer.value = state.customPalette.timer;
         els.body.dataset.theme = state.theme === "default" ? "" : state.theme;
+        if (state.theme === "custom") {
+          applyCustomPalette();
+        } else {
+          clearCustomPaletteStyles();
+        }
         els.presenterName.textContent = state.presenterName;
         els.presenterEmail.textContent = state.presenterEmail;
         els.displayPresenterName.textContent = state.presenterName;
@@ -1542,10 +1732,21 @@
         timerMode = "break";
         els.returnTimeInput.value = "";
         state = { ...defaults, ...state, ...profiles[profileName] };
+        state.customPalette = { ...defaults.customPalette, ...state.customPalette };
         saveState();
         renderProfiles(profileName);
         updateDisplay();
         updateTimer();
+      }
+
+      function renameSelectedProfile() {
+        const oldName = els.profileSelect.value;
+        const newName = els.profileNameInput.value.trim().slice(0, 80);
+        if (!oldName || !profiles[oldName] || !newName || newName === oldName) return;
+        profiles[newName] = profiles[oldName];
+        delete profiles[oldName];
+        saveProfiles();
+        renderProfiles(newName);
       }
 
       function deleteSelectedProfile() {
@@ -1674,11 +1875,30 @@
         updateDisplay();
       });
 
+      [
+        ["paletteBg", "bg"],
+        ["paletteText", "text"],
+        ["paletteAccent", "accent"],
+        ["paletteTimer", "timer"],
+      ].forEach(([elementKey, paletteKey]) => {
+        els[elementKey].addEventListener("input", () => {
+          state.customPalette = {
+            ...defaults.customPalette,
+            ...state.customPalette,
+            [paletteKey]: els[elementKey].value,
+          };
+          state.theme = "custom";
+          saveState();
+          updateDisplay();
+        });
+      });
+
       els.profileSelect.addEventListener("change", () => {
         els.profileNameInput.value = els.profileSelect.value;
       });
 
       els.saveProfile.addEventListener("click", saveCurrentProfile);
+      els.renameProfile.addEventListener("click", renameSelectedProfile);
       els.loadProfile.addEventListener("click", loadSelectedProfile);
       els.deleteProfile.addEventListener("click", deleteSelectedProfile);
       els.resetSession.addEventListener("click", resetSession);
