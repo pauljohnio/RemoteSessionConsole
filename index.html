@@ -515,6 +515,27 @@
         color: var(--dim);
       }
 
+      .display-logo {
+        position: absolute;
+        top: 52%;
+        right: clamp(28px, 5vw, 54px);
+        max-width: clamp(120px, 15vw, 260px);
+        max-height: clamp(72px, 18vh, 190px);
+        object-fit: contain;
+        opacity: 0.94;
+        transform: translateY(-50%);
+      }
+
+      .display-logo[hidden] {
+        display: none;
+      }
+
+      .hero.has-logo .message,
+      .hero.has-logo .course-title,
+      .hero.has-logo .countdown-block {
+        max-width: min(920px, calc(100% - clamp(170px, 22vw, 340px)));
+      }
+
       .clean .display-presenter {
         right: clamp(28px, 5vw, 54px);
         bottom: clamp(112px, 14vh, 160px);
@@ -786,6 +807,19 @@
         gap: 2px;
       }
 
+      body:not(.clean) .preview-panel .display-logo {
+        top: 62%;
+        right: clamp(20px, 3vw, 30px);
+        max-width: clamp(72px, 10vw, 120px);
+        max-height: clamp(48px, 8vw, 82px);
+      }
+
+      body:not(.clean) .preview-panel .hero.has-logo .message,
+      body:not(.clean) .preview-panel .hero.has-logo .course-title,
+      body:not(.clean) .preview-panel .hero.has-logo .countdown-block {
+        max-width: calc(100% - clamp(92px, 13vw, 140px));
+      }
+
       .presenter-panel .panel-body {
         gap: 10px;
       }
@@ -830,6 +864,27 @@
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 8px;
         padding: 0 10px 10px;
+      }
+
+      .asset-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 8px;
+        align-items: end;
+      }
+
+      .asset-name {
+        min-height: 34px;
+        overflow: hidden;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--field);
+        color: var(--dim);
+        font-size: 0.82rem;
+        text-overflow: ellipsis;
+        text-transform: none;
+        white-space: nowrap;
       }
 
       .clean .topbar,
@@ -941,6 +996,7 @@
         .presenter-grid,
         .profile-grid,
         .palette-grid,
+        .asset-row,
         .profile-actions,
         .timer-controls {
           grid-template-columns: 1fr;
@@ -1081,6 +1137,7 @@
                   <span id="displayPresenterEmail"></span>
                   <span id="displayPresenterLink"></span>
                 </div>
+                <img id="displayLogo" class="display-logo" alt="" hidden />
               </div>
             </div>
           </section>
@@ -1145,6 +1202,15 @@
                   </label>
                 </div>
               </details>
+              <div class="asset-row">
+                <label>
+                  Display image
+                  <span id="displayImageName" class="asset-name">No image selected</span>
+                </label>
+                <button id="chooseDisplayImage" class="ghost" type="button">Choose image</button>
+                <button id="removeDisplayImage" class="ghost" type="button">Remove image</button>
+              </div>
+              <input id="displayImageInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
               <div class="profile-actions">
                 <button id="saveProfile" type="button">Save profile</button>
                 <button id="renameProfile" class="ghost" type="button">Rename</button>
@@ -1220,6 +1286,7 @@
     <script>
       const storageKey = "session-cover-v2";
       const profileStorageKey = "session-cover-profiles-v1";
+      const maxDisplayImageSize = 900 * 1024;
       const defaults = {
         presenterName: "Presenter Name",
         presenterEmail: "",
@@ -1239,6 +1306,8 @@
           accent: "#4aa3ff",
           timer: "#ffcc66",
         },
+        displayImageData: "",
+        displayImageName: "",
       };
       const profileFields = [
         "presenterName",
@@ -1254,6 +1323,8 @@
         "theme",
         "timerMinutes",
         "customPalette",
+        "displayImageData",
+        "displayImageName",
       ];
       const els = {
         body: document.body,
@@ -1263,6 +1334,7 @@
         displayPresenterName: document.getElementById("displayPresenterName"),
         displayPresenterEmail: document.getElementById("displayPresenterEmail"),
         displayPresenterLink: document.getElementById("displayPresenterLink"),
+        displayLogo: document.getElementById("displayLogo"),
         presenterNameInput: document.getElementById("presenterNameInput"),
         presenterEmailInput: document.getElementById("presenterEmailInput"),
         presenterLinkInput: document.getElementById("presenterLinkInput"),
@@ -1290,6 +1362,10 @@
         paletteText: document.getElementById("paletteText"),
         paletteAccent: document.getElementById("paletteAccent"),
         paletteTimer: document.getElementById("paletteTimer"),
+        displayImageName: document.getElementById("displayImageName"),
+        chooseDisplayImage: document.getElementById("chooseDisplayImage"),
+        removeDisplayImage: document.getElementById("removeDisplayImage"),
+        displayImageInput: document.getElementById("displayImageInput"),
         profileNameInput: document.getElementById("profileNameInput"),
         profileSelect: document.getElementById("profileSelect"),
         saveProfile: document.getElementById("saveProfile"),
@@ -1569,6 +1645,10 @@
         els.displayPresenterName.textContent = state.presenterName;
         els.displayPresenterEmail.textContent = state.presenterEmail;
         els.displayPresenterLink.textContent = state.presenterLink;
+        els.displayLogo.src = state.displayImageData;
+        els.displayLogo.hidden = !state.displayImageData;
+        els.hero.classList.toggle("has-logo", Boolean(state.displayImageData));
+        els.displayImageName.textContent = state.displayImageName || "No image selected";
         els.sessionState.textContent = state.state;
         els.courseTitle.textContent = state.courseTitle;
         els.body.classList.toggle("countdown-hidden", !state.showCountdown);
@@ -1582,6 +1662,35 @@
 
       function renderMessage() {
         els.message.textContent = state.message;
+      }
+
+      function setDisplayImage(file) {
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          window.alert("Please choose an image file.");
+          return;
+        }
+        if (file.size > maxDisplayImageSize) {
+          window.alert("Please choose a logo-sized image under 900 KB.");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          state.displayImageData = String(reader.result || "");
+          state.displayImageName = file.name;
+          saveState();
+          updateDisplay();
+          els.displayImageInput.value = "";
+        });
+        reader.readAsDataURL(file);
+      }
+
+      function removeDisplayImage() {
+        state.displayImageData = "";
+        state.displayImageName = "";
+        saveState();
+        updateDisplay();
       }
 
       function normalizeEndUrl(value) {
@@ -1995,6 +2104,11 @@
       els.importProfile.addEventListener("click", () => els.profileFileInput.click());
       els.profileFileInput.addEventListener("change", () => {
         importProfileFile(els.profileFileInput.files?.[0]);
+      });
+      els.chooseDisplayImage.addEventListener("click", () => els.displayImageInput.click());
+      els.removeDisplayImage.addEventListener("click", removeDisplayImage);
+      els.displayImageInput.addEventListener("change", () => {
+        setDisplayImage(els.displayImageInput.files?.[0]);
       });
       els.deleteProfile.addEventListener("click", deleteSelectedProfile);
       els.resetSession.addEventListener("click", resetSession);
