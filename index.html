@@ -1158,6 +1158,7 @@
       function setTimerFromMinutes(minutes, mode) {
         const now = new Date();
         timerMode = mode;
+        state.showCountdown = true;
         if (mode === "start") {
           state.state = "Starting soon";
           state.message = "Thank you for joining the session, we will start soon.";
@@ -1181,6 +1182,7 @@
         timerMode = "break";
         state.state = "Break";
         state.message = "Session currently on break.";
+        state.showCountdown = true;
         saveState();
         updateDisplay();
         if (returnDate) {
@@ -1196,6 +1198,7 @@
         timerMode = "start";
         state.state = "Starting soon";
         state.message = "Thank you for joining the session, we will start soon.";
+        state.showCountdown = true;
         saveState();
         updateDisplay();
         if (startDate) {
