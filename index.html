@@ -406,6 +406,20 @@
         font-size: clamp(1.15rem, 2.2vw, 2.15rem);
       }
 
+      .countdown-hidden .hero.timer-active .session-heading {
+        padding-right: 0;
+      }
+
+      .countdown-hidden .hero.timer-active .message {
+        color: var(--text);
+        font-size: clamp(1.65rem, 3.4vw, 3.5rem);
+      }
+
+      .countdown-hidden .current-time,
+      .countdown-hidden .countdown-block {
+        display: none !important;
+      }
+
       .countdown-block {
         display: grid;
         gap: 8px;
@@ -480,7 +494,7 @@
 
       .quick-time-grid {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
         gap: 7px;
       }
 
@@ -504,6 +518,32 @@
         font-weight: 720;
         letter-spacing: 0.08em;
         text-transform: uppercase;
+      }
+
+      .option-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 38px;
+        padding: 8px 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: #0b1018;
+      }
+
+      .option-toggle span {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 760;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .option-toggle button {
+        min-height: 30px;
+        padding: 0 10px;
+        color: var(--muted);
       }
 
       .input-hint {
@@ -838,7 +878,7 @@
             <div class="panel-body stack">
               <div class="field-grid">
                 <label>
-                  Break length
+                  Timer length
                   <input id="minutesInput" type="number" min="1" max="180" value="15" />
                 </label>
                 <label>
@@ -857,12 +897,17 @@
                 <button id="startCountdown">Session start</button>
                 <button id="startTimer">Break return</button>
               </div>
+              <div class="option-toggle">
+                <span>Display countdown</span>
+                <button id="toggleCountdown" class="ghost" type="button">Hide</button>
+              </div>
               <button id="clearTimer">Clear timer</button>
-              <div class="quick-time-grid" aria-label="Break length presets">
+              <div class="quick-time-grid" aria-label="Timer length presets">
                 <button data-minutes="5"><strong>5</strong><span>min</span></button>
                 <button data-minutes="10"><strong>10</strong><span>min</span></button>
                 <button data-minutes="15"><strong>15</strong><span>min</span></button>
                 <button data-minutes="30"><strong>30</strong><span>min</span></button>
+                <button data-minutes="45"><strong>45</strong><span>min</span></button>
                 <button data-minutes="60"><strong>60</strong><span>min</span></button>
               </div>
             </div>
@@ -905,6 +950,7 @@
         message: "Thank you for joining the session, we will start soon.",
         customState: "Custom",
         customMessage: "Type your custom message here.",
+        showCountdown: true,
       };
       const els = {
         body: document.body,
@@ -934,6 +980,7 @@
         startTimer: document.getElementById("startTimer"),
         startCountdown: document.getElementById("startCountdown"),
         clearTimer: document.getElementById("clearTimer"),
+        toggleCountdown: document.getElementById("toggleCountdown"),
         blankScreen: document.getElementById("blankScreen"),
         cleanMode: document.getElementById("cleanMode"),
         cleanReturn: document.getElementById("cleanReturn"),
@@ -1026,6 +1073,12 @@
         els.displayPresenterLink.textContent = state.presenterLink;
         els.sessionState.textContent = state.state;
         els.courseTitle.textContent = state.courseTitle;
+        els.body.classList.toggle("countdown-hidden", !state.showCountdown);
+        els.toggleCountdown.textContent = state.showCountdown ? "Hide" : "Show";
+        els.toggleCountdown.setAttribute(
+          "aria-pressed",
+          state.showCountdown ? "true" : "false",
+        );
         renderMessage();
       }
 
@@ -1102,16 +1155,25 @@
         updateTimer();
       }
 
-      function startTimerFromMinutes(minutes) {
+      function setTimerFromMinutes(minutes, mode) {
         const now = new Date();
-        timerMode = "break";
-        state.state = "Break";
-        state.message = "Session currently on break.";
+        timerMode = mode;
+        if (mode === "start") {
+          state.state = "Starting soon";
+          state.message = "Thank you for joining the session, we will start soon.";
+        } else {
+          state.state = "Break";
+          state.message = "Session currently on break.";
+        }
         saveState();
         updateDisplay();
         timerEnd = new Date(now.getTime() + minutes * 60 * 1000);
         els.returnTimeInput.value = `${String(timerEnd.getHours()).padStart(2, "0")}:${String(timerEnd.getMinutes()).padStart(2, "0")}`;
         updateTimer();
+      }
+
+      function startTimerFromMinutes(minutes) {
+        setTimerFromMinutes(minutes, "break");
       }
 
       function startTimer() {
@@ -1124,20 +1186,23 @@
         if (returnDate) {
           timerEnd = returnDate;
         } else {
-          startTimerFromMinutes(Number(els.minutesInput.value || 15));
+          setTimerFromMinutes(Number(els.minutesInput.value || 15), "break");
         }
         updateTimer();
       }
 
       function startCountdownToSession() {
         const startDate = getReturnDateFromInput();
-        if (!startDate) return;
         timerMode = "start";
         state.state = "Starting soon";
         state.message = "Thank you for joining the session, we will start soon.";
         saveState();
         updateDisplay();
-        timerEnd = startDate;
+        if (startDate) {
+          timerEnd = startDate;
+        } else {
+          setTimerFromMinutes(Number(els.minutesInput.value || 15), "start");
+        }
         updateTimer();
       }
 
@@ -1251,6 +1316,11 @@
       els.startTimer.addEventListener("click", startTimer);
       els.startCountdown.addEventListener("click", startCountdownToSession);
       els.clearTimer.addEventListener("click", clearTimer);
+      els.toggleCountdown.addEventListener("click", () => {
+        state.showCountdown = !state.showCountdown;
+        saveState();
+        updateDisplay();
+      });
 
       els.blankScreen.addEventListener("click", toggleBlankScreen);
 

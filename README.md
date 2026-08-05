@@ -21,7 +21,8 @@ Make the browser window the same size as the desktop area you share. Use **Fulls
 - Lets you configure the presenter name, email, and optional link shown on the display.
 - Shows a large session message such as "Starting soon", "Break", "Exercise / Lab", or "One moment".
 - Keeps a **Custom** status preset based on the last status/message you typed.
-- Starts break timers from quick presets or a specific return time in 12-hour or 24-hour format.
+- Starts break or session-start timers from quick presets, a timer length, or a specific return time in 12-hour or 24-hour format.
+- Lets you hide or show the countdown on the display without stopping the timer.
 - Uses **Display View** to hide controls while sharing.
 - Shows a small **Controls** button in clean view so you can get back.
 
