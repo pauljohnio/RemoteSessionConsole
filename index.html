@@ -1262,7 +1262,7 @@
               <div class="field-grid">
                 <label>
                   Timer length
-                  <input id="minutesInput" type="number" min="1" max="180" value="15" />
+                  <input id="minutesInput" type="number" min="1" max="180" step="1" value="15" required />
                 </label>
                 <label>
                   Target time
@@ -1420,6 +1420,7 @@
       let profiles = loadProfiles();
       let timerEnd = null;
       let timerMode = "break";
+      let timerSource = "minutes";
       let blankReturnMode = "dashboard";
 
       function loadState() {
@@ -1512,6 +1513,7 @@
       }
 
       function getReturnDateFromInput() {
+        if (timerSource !== "target") return null;
         const parsed = parseClockTime(els.returnTimeInput.value);
         if (!parsed) return null;
         const target = new Date();
@@ -1807,6 +1809,8 @@
       }
 
       function setTimerFromMinutes(minutes, mode) {
+        if (!Number.isInteger(minutes) || minutes < 1 || minutes > 180) return;
+        timerSource = "minutes";
         const now = new Date();
         timerMode = mode;
         state.timerMinutes = String(minutes);
@@ -1831,33 +1835,33 @@
 
       function startTimer() {
         const returnDate = getReturnDateFromInput();
+        if (!returnDate) {
+          startTimerFromInput("break");
+          return;
+        }
         timerMode = "break";
         state.state = "Break";
         state.message = "Session currently on break.";
         state.showCountdown = true;
         saveState();
         updateDisplay();
-        if (returnDate) {
-          timerEnd = returnDate;
-        } else {
-          setTimerFromMinutes(Number(els.minutesInput.value || 15), "break");
-        }
+        timerEnd = returnDate;
         updateTimer();
       }
 
       function startCountdownToSession() {
         const startDate = getReturnDateFromInput();
+        if (!startDate) {
+          startTimerFromInput("start");
+          return;
+        }
         timerMode = "start";
         state.state = "Starting soon";
         state.message = "Thank you for joining the session, we will start soon.";
         state.showCountdown = true;
         saveState();
         updateDisplay();
-        if (startDate) {
-          timerEnd = startDate;
-        } else {
-          setTimerFromMinutes(Number(els.minutesInput.value || 15), "start");
-        }
+        timerEnd = startDate;
         updateTimer();
       }
 
@@ -1866,6 +1870,18 @@
         timerMode = "break";
         els.returnTimeInput.value = "";
         updateTimer();
+      }
+
+      function startTimerFromInput(mode) {
+        if (!els.minutesInput.reportValidity()) return;
+        setTimerFromMinutes(els.minutesInput.valueAsNumber, mode);
+      }
+
+      function applyTimerLength() {
+        const mode = timerEnd
+          ? timerMode
+          : state.state.toLowerCase() === "starting soon" ? "start" : "break";
+        startTimerFromInput(mode);
       }
 
       function resetSession() {
@@ -2109,8 +2125,21 @@
       });
 
       els.minutesInput.addEventListener("input", () => {
-        state.timerMinutes = els.minutesInput.value || defaults.timerMinutes;
+        // An edited duration takes precedence over a previous target time.
+        timerSource = "minutes";
+        els.returnTimeInput.value = "";
+        state.timerMinutes = els.minutesInput.value;
         saveState();
+      });
+
+      els.minutesInput.addEventListener("change", applyTimerLength);
+      els.returnTimeInput.addEventListener("input", () => {
+        timerSource = "target";
+      });
+      els.minutesInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        applyTimerLength();
       });
 
       els.themeSelect.addEventListener("change", () => {
