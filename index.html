@@ -1262,7 +1262,7 @@
               <div class="field-grid">
                 <label>
                   Timer length
-                  <input id="minutesInput" type="number" min="1" max="180" step="1" value="15" required />
+                  <input id="minutesInput" type="number" min="1" max="1440" step="1" value="15" required />
                 </label>
                 <label>
                   Target time
@@ -1522,6 +1522,27 @@
           target.setDate(target.getDate() + 1);
         }
         return target;
+      }
+
+      function syncTargetFromMinutes() {
+        els.returnTimeInput.setCustomValidity("");
+        els.returnTimeInput.value = els.minutesInput.validity.valid
+          ? formatClock(new Date(Date.now() + els.minutesInput.valueAsNumber * 60000))
+          : "";
+      }
+
+      function syncMinutesFromTarget() {
+        const target = getReturnDateFromInput();
+        els.returnTimeInput.setCustomValidity(
+          !target && els.returnTimeInput.value.trim()
+            ? "Enter a time such as 14:30 or 2:30 PM."
+            : "",
+        );
+        state.timerMinutes = target
+          ? String(Math.max(1, Math.ceil((target.getTime() - Date.now()) / 60000)))
+          : "";
+        els.minutesInput.value = state.timerMinutes;
+        saveState();
       }
 
       function parseClockTime(value) {
@@ -1809,8 +1830,9 @@
       }
 
       function setTimerFromMinutes(minutes, mode) {
-        if (!Number.isInteger(minutes) || minutes < 1 || minutes > 180) return;
+        if (!Number.isInteger(minutes) || minutes < 1 || minutes > 1440) return;
         timerSource = "minutes";
+        els.returnTimeInput.setCustomValidity("");
         const now = new Date();
         timerMode = mode;
         state.timerMinutes = String(minutes);
@@ -1834,11 +1856,13 @@
       }
 
       function startTimer() {
+        if (!els.returnTimeInput.reportValidity()) return;
         const returnDate = getReturnDateFromInput();
         if (!returnDate) {
           startTimerFromInput("break");
           return;
         }
+        syncMinutesFromTarget();
         timerMode = "break";
         state.state = "Break";
         state.message = "Session currently on break.";
@@ -1850,11 +1874,13 @@
       }
 
       function startCountdownToSession() {
+        if (!els.returnTimeInput.reportValidity()) return;
         const startDate = getReturnDateFromInput();
         if (!startDate) {
           startTimerFromInput("start");
           return;
         }
+        syncMinutesFromTarget();
         timerMode = "start";
         state.state = "Starting soon";
         state.message = "Thank you for joining the session, we will start soon.";
@@ -1881,7 +1907,13 @@
         const mode = timerEnd
           ? timerMode
           : state.state.toLowerCase() === "starting soon" ? "start" : "break";
-        startTimerFromInput(mode);
+        if (timerSource === "target") {
+          if (!els.returnTimeInput.value.trim()) return;
+          if (mode === "start") startCountdownToSession();
+          else startTimer();
+        } else {
+          startTimerFromInput(mode);
+        }
       }
 
       function resetSession() {
@@ -2019,6 +2051,7 @@
       }
 
       function updateTimer() {
+        if (!els.returnTimeInput.value.trim()) els.returnTimeInput.setCustomValidity("");
         if (!timerEnd) {
           els.countdown.textContent = "--:--";
           els.countdown.classList.add("is-idle");
@@ -2127,7 +2160,7 @@
       els.minutesInput.addEventListener("input", () => {
         // An edited duration takes precedence over a previous target time.
         timerSource = "minutes";
-        els.returnTimeInput.value = "";
+        syncTargetFromMinutes();
         state.timerMinutes = els.minutesInput.value;
         saveState();
       });
@@ -2135,6 +2168,13 @@
       els.minutesInput.addEventListener("change", applyTimerLength);
       els.returnTimeInput.addEventListener("input", () => {
         timerSource = "target";
+        syncMinutesFromTarget();
+      });
+      els.returnTimeInput.addEventListener("change", applyTimerLength);
+      els.returnTimeInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        applyTimerLength();
       });
       els.minutesInput.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") return;
