@@ -1078,7 +1078,7 @@
       </section>
 
       <main class="stage">
-        <div class="app-meta left-rail">Remote Session Console · v1.0.0</div>
+        <div class="app-meta left-rail">Remote Session Console · v1.0.1</div>
 
         <aside class="column left-rail">
           <section class="panel">
@@ -1943,6 +1943,7 @@
       function resetSession() {
         timerEnd = null;
         timerMode = "break";
+        timerSource = "minutes";
         els.returnTimeInput.value = "";
         state = {
           ...state,
@@ -1958,6 +1959,7 @@
         };
         saveState();
         updateDisplay();
+        syncTargetFromMinutes();
         updateTimer();
       }
 
@@ -1975,12 +1977,14 @@
         if (!profileName || !profiles[profileName]) return;
         timerEnd = null;
         timerMode = "break";
+        timerSource = "minutes";
         els.returnTimeInput.value = "";
         state = { ...defaults, ...state, ...normalizeProfile(profiles[profileName]) };
         state.customPalette = { ...defaults.customPalette, ...state.customPalette };
         saveState();
         renderProfiles(profileName);
         updateDisplay();
+        syncTargetFromMinutes();
         updateTimer();
       }
 
@@ -2344,6 +2348,7 @@
 
       renderProfiles();
       updateDisplay();
+      syncTargetFromMinutes();
       tick();
       setInterval(tick, 1000);
     </script>
