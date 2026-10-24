@@ -1087,7 +1087,7 @@
             </div>
             <div class="panel-body stack">
               <div class="quick-grid">
-                <button data-preset="Starting soon" data-message="Thank you for joining the session, we will start soon.">
+                <button data-preset="Starting soon" data-message="Thank you for joining the session, we will start at 0905 am">
                   <span>Starting Soon</span>
                   <small>Welcome screen</small>
                 </button>
@@ -1118,7 +1118,7 @@
               </label>
               <label>
                 Main message
-                <textarea id="messageInput">Thank you for joining the session, we will start soon.</textarea>
+                <textarea id="messageInput">Thank you for joining the session, we will start at 0905 am</textarea>
               </label>
             </div>
           </section>
@@ -1147,7 +1147,7 @@
                     <div id="dateLine" class="date-line">Loading time</div>
                   </div>
                 </div>
-                <div id="message" class="message">Thank you for joining the session, we will start soon.</div>
+                <div id="message" class="message">Thank you for joining the session, we will start at 0905 am</div>
                 <div class="countdown-block">
                   <div id="countdownLabel" class="countdown-label"></div>
                   <div id="countdown" class="countdown">--:--</div>
@@ -1321,7 +1321,8 @@
         presenterLink: "",
         state: "Starting soon",
         courseTitle: "",
-        message: "Thank you for joining the session, we will start soon.",
+        message: "Thank you for joining the session, we will start at 0905 am",
+        startingSoonMessage: "Thank you for joining the session, we will start at 0905 am",
         customState: "Custom",
         customMessage: "Type your custom message here.",
         startLabel: "Session starts in",
@@ -1345,6 +1346,7 @@
         "state",
         "courseTitle",
         "message",
+        "startingSoonMessage",
         "customState",
         "customMessage",
         "startLabel",
@@ -1429,6 +1431,7 @@
           return {
             ...defaults,
             ...saved,
+            ...restoreStartingSoonMessage(saved),
             customPalette: { ...defaults.customPalette, ...saved?.customPalette },
           };
         } catch {
@@ -1438,6 +1441,20 @@
 
       function saveState() {
         localStorage.setItem(storageKey, JSON.stringify(state));
+      }
+
+      function restoreStartingSoonMessage(saved) {
+        const isStartingSoon = saved?.state === "Starting soon";
+        const oldDefault = "Thank you for joining the session, we will start soon.";
+        const message = saved?.startingSoonMessage ?? (
+          isStartingSoon && typeof saved.message === "string" && saved.message !== oldDefault
+            ? saved.message
+            : defaults.startingSoonMessage
+        );
+        return {
+          startingSoonMessage: message,
+          ...(isStartingSoon ? { message } : {}),
+        };
       }
 
       function loadProfiles() {
@@ -1464,7 +1481,9 @@
       }
 
       function normalizeProfile(rawProfile) {
-        const source = rawProfile && typeof rawProfile === "object" ? rawProfile : {};
+        const source = rawProfile && typeof rawProfile === "object"
+          ? { ...rawProfile, ...restoreStartingSoonMessage(rawProfile) }
+          : {};
         return profileFields.reduce((profile, field) => {
           if (field === "customPalette") {
             profile[field] = { ...defaults.customPalette, ...source.customPalette };
@@ -1799,7 +1818,9 @@
 
       function setPreset(button) {
         state.state = button.dataset.preset;
-        state.message = button.dataset.message;
+        state.message = state.state === "Starting soon"
+          ? state.startingSoonMessage
+          : button.dataset.message;
         saveState();
         updateDisplay();
       }
@@ -1812,6 +1833,9 @@
       }
 
       function cacheCustomPreset() {
+        if (state.state === "Starting soon") {
+          state.startingSoonMessage = els.messageInput.value;
+        }
         state.customState = els.stateInput.value;
         state.customMessage = els.messageInput.value;
       }
@@ -1839,7 +1863,7 @@
         state.showCountdown = true;
         if (mode === "start") {
           state.state = "Starting soon";
-          state.message = "Thank you for joining the session, we will start soon.";
+          state.message = state.startingSoonMessage;
         } else {
           state.state = "Break";
           state.message = "Session currently on break.";
@@ -1883,7 +1907,7 @@
         syncMinutesFromTarget();
         timerMode = "start";
         state.state = "Starting soon";
-        state.message = "Thank you for joining the session, we will start soon.";
+        state.message = state.startingSoonMessage;
         state.showCountdown = true;
         saveState();
         updateDisplay();
@@ -1925,6 +1949,7 @@
           state: defaults.state,
           courseTitle: defaults.courseTitle,
           message: defaults.message,
+          startingSoonMessage: defaults.startingSoonMessage,
           customState: defaults.customState,
           customMessage: defaults.customMessage,
           startLabel: defaults.startLabel,
@@ -1951,7 +1976,7 @@
         timerEnd = null;
         timerMode = "break";
         els.returnTimeInput.value = "";
-        state = { ...defaults, ...state, ...profiles[profileName] };
+        state = { ...defaults, ...state, ...normalizeProfile(profiles[profileName]) };
         state.customPalette = { ...defaults.customPalette, ...state.customPalette };
         saveState();
         renderProfiles(profileName);
